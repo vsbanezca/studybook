@@ -1,0 +1,11 @@
+.galeria { padding-block: var(--sb-space-8) 96px; display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sb-space-8); }
+section { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sb-space-4); }
+.fila { display: flex; flex-wrap: wrap; gap: var(--sb-space-3); align-items: center; }
+.muestra { display: grid; gap: var(--sb-space-1); font-size: 12px; line-height: 16px; width: 96px; }
+.color { height: 48px; border-radius: var(--sb-radius-control); border: 1px solid var(--sb-border); }
+.bloque { padding: var(--sb-space-6); border-radius: var(--sb-radius-card); }
+.campo { max-width: 320px; }
+.icono-muestra { justify-items: center; text-align: center; }
+.grande { font-size: 24px; }
+.icono-muestra { color: var(--sb-primary-600); }
+p { margin: 0; }
