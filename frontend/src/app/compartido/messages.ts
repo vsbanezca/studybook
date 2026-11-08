@@ -1,0 +1,33 @@
+// app/compartido/messages.ts
+// LITERAL = texto aprobado en la especificacion (no cambiar). PROPUESTA = a confirmar con cada historia.
+export const MSG = {
+  reserva: {
+    creada:            'La reserva se ha creado exitosamente',                    // LITERAL
+    datosInvalidos:    'Datos proporcionados incorrectos',                        // LITERAL
+    capacidadExcedida: 'La cantidad de asistentes supera la capacidad del espacio', // LITERAL
+    noDisponible:      'El espacio ya está reservado en esa fecha y horario',     // LITERAL
+    sinEspacios:       'No hay espacios registrados',                             // LITERAL
+    confirmar:         '¿Confirmas la reserva?',                                  // PROPUESTA
+  },
+  cuenta: {
+    creada:            'La cuenta se ha creado exitosamente',                     // PROPUESTA
+    correoRegistrado:  'Ya existe una cuenta con ese correo',                     // PROPUESTA
+    correoNoUcab:      'Usa tu correo institucional de la UCAB.',                 // PROPUESTA
+    clavesDistintas:   'Las contraseñas no coinciden.',                           // PROPUESTA
+    confirmar:         '¿Confirmas el registro?',                                 // PROPUESTA
+    credencialesMal:   'Correo o contraseña incorrectos',                        // PROPUESTA
+  },
+  espacio: {
+    creado:            'El espacio se ha creado exitosamente',                    // PROPUESTA
+    repetido:          'Ya existe un espacio con ese nombre en esa ubicación',    // PROPUESTA
+    confirmar:         '¿Confirmas la creación del espacio?',                     // PROPUESTA
+    sinPermiso:        'No tienes permiso para ver esta página',                  // PROPUESTA
+  },
+  equipamiento: {
+    creado:            'El equipamiento se ha creado exitosamente',               // PROPUESTA
+    repetido:          'Este espacio ya tiene ese equipamiento',                  // PROPUESTA
+    confirmar:         '¿Confirmas el registro del equipamiento?',                // PROPUESTA
+    vacio:             'Este espacio no tiene equipamiento registrado',           // PROPUESTA
+  },
+  comunes: { campoObligatorio: 'Este campo es obligatorio.', aceptar: 'Aceptar', si: 'Sí', no: 'No' },
+} as const;
