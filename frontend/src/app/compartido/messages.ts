@@ -16,14 +16,13 @@ export const MSG = {
     clavesDistintas:   'Las contraseñas no coinciden.',                           // PROPUESTA
     confirmar:         '¿Confirmas el registro?',                                 // PROPUESTA
     credencialesMal:   'Correo o contraseña incorrectos',                        // LITERAL
-    datosInvalidos:    'Datos proporcionados incorrectos',                        // LITERAL
     correoObligatorio: 'El correo es obligatorio',                                // PROPUESTA
     correoFormato:     'El correo debe tener formato de correo electrónico',                    // PROPUESTA
     claveObligatoria:  'La contraseña es obligatoria',                            // PROPUESTA
-    errorServidor:     'No se pudo conectar con el servidor. Inténtalo de nuevo.', // PROPUESTA
   },
   espacio: {
     creado:            'El espacio se ha creado exitosamente',                    // PROPUESTA
+    capacidadInvalida: 'La capacidad debe ser un número entero mayor que 0', // PROPUESTA
     repetido:          'Ya existe un espacio con ese nombre en esa ubicación',    // PROPUESTA
     confirmar:         '¿Confirmas la creación del espacio?',                     // PROPUESTA
     sinPermiso:        'No tienes permiso para ver esta página',                  // PROPUESTA
@@ -34,5 +33,9 @@ export const MSG = {
     confirmar:         '¿Confirmas el registro del equipamiento?',                // PROPUESTA
     vacio:             'Este espacio no tiene equipamiento registrado',           // PROPUESTA
   },
-  comunes: { campoObligatorio: 'Este campo es obligatorio.', aceptar: 'Aceptar', si: 'Sí', no: 'No' },
+  comunes: {
+    campoObligatorio: 'Este campo es obligatorio.', aceptar: 'Aceptar', si: 'Sí', no: 'No',
+    datosInvalidos:   'Datos proporcionados incorrectos',                         // LITERAL
+    errorServidor:    'No se pudo conectar con el servidor. Inténtalo de nuevo.',  // PROPUESTA
+  },
 } as const;

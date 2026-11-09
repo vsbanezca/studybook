@@ -60,7 +60,7 @@ export class IniciarSesionComponent {
     this.intentado.set(true);
     const errores = [this.errorCorreo(), this.errorClave()].filter((e) => e !== '');
     if (errores.length > 0) {
-      this.mostrarMensaje(MSG.cuenta.datosInvalidos, errores, () => {
+      this.mostrarMensaje(MSG.comunes.datosInvalidos, errores, () => {
         (this.errorCorreo() ? this.correoEl() : this.claveEl()).nativeElement.focus();
       });
       return;
@@ -96,11 +96,11 @@ export class IniciarSesionComponent {
         this.claveEl().nativeElement.focus();
       });
     } else if (estado === 400) {
-      this.mostrarMensaje(MSG.cuenta.datosInvalidos, Object.values((error as HttpErrorResponse).error?.campos ?? {}), () =>
+      this.mostrarMensaje(MSG.comunes.datosInvalidos, Object.values((error as HttpErrorResponse).error?.campos ?? {}), () =>
         this.correoEl().nativeElement.focus(),
       );
     } else {
-      this.mostrarMensaje(MSG.cuenta.errorServidor, [], () => this.claveEl().nativeElement.focus());
+      this.mostrarMensaje(MSG.comunes.errorServidor, [], () => this.claveEl().nativeElement.focus());
     }
   }
 
