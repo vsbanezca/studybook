@@ -1,58 +1,41 @@
+:host { display: block; }
+
 .contenedor-pantalla {
-  max-width: 1120px;
+  max-width: var(--sb-container);
   margin: 0 auto;
-  padding: 32px;
+  padding: var(--sb-space-8);
 }
 
 .texto-apoyo {
-  font-family: 'Inter', sans-serif;
-  font-size: 12px;
-  margin-bottom: 24px;
+  margin: var(--sb-space-2) 0 var(--sb-space-6);
 }
 
 form {
   max-width: 420px; /* Limita el ancho del formulario para no verse estirado */
-  margin-top: 24px;
+  margin-top: var(--sb-space-6);
 }
 
 .grupo-campo {
-  margin-bottom: 16px;
+  margin-bottom: var(--sb-space-4);
 }
 
-.etiqueta-campo {
-  display: block;
-  font-family: 'Inter', sans-serif;
-  font-weight: 500;
-  font-size: 14px;
-  margin-bottom: 4px;
-}
-
-.input-base {
-  width: 100%;
-  height: 44px; /* Altura única exigida */
-  border-radius: 14px; /* Radios exigidos */
-  border: 1px solid var(--sb-border-color); 
-  padding: 0 12px;
-  font-family: 'Inter', sans-serif;
-}
-
-.input-base:focus {
-  outline: 2px solid var(--sb-primary-600); /* Foco visible exigido */
+textarea.sb-input {
+  padding-block: var(--sb-space-3);
+  resize: vertical;
 }
 
 .acciones-formulario {
   display: flex;
   justify-content: flex-end;
-  gap: 16px;
-  margin-top: 32px;
+  gap: var(--sb-space-4);
+  margin-top: var(--sb-space-8);
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767.98px) {
   .contenedor-pantalla {
-    padding: 16px;
+    padding: var(--sb-space-4);
   }
-  .acciones-formulario {
-    /* En celular, el botón principal debe ir fijo abajo y ocupar más espacio según el diseño */
-    flex-direction: column; 
+  .acciones-formulario .sb-btn {
+    flex: 1;
   }
 }

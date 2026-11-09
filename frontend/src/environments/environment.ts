@@ -1,5 +1,5 @@
 export const environment = {
   production: false,
-  apiUrl: 'http://localhost:8080/api' // Asegúrate de que este sea el puerto de tu Spring Boot
+  // Ruta relativa: pasa por el proxy de ng serve (proxy.conf.json) y la cookie de sesion viaja con la peticion.
+  apiUrl: '/api',
 };
-

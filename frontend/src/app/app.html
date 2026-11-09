@@ -1,1 +1,6 @@
-<router-outlet />
+@if (sesion.autenticado()) {
+  <sb-header [rol]="sesion.rolHeader()" [nombre]="sesion.usuario()?.nombre ?? ''" />
+}
+<div [class.con-nav]="sesion.autenticado()">
+  <router-outlet />
+</div>

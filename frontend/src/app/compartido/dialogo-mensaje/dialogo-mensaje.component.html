@@ -1,0 +1,16 @@
+<div class="mensaje">
+  <sb-icon class="icono" nombre="circle-x" />
+  <div class="cuerpo">
+    <h2 class="titulo" id="sb-dialogo-titulo">{{ datos.titulo }}</h2>
+    @if (datos.detalle?.length) {
+      <ul class="detalle">
+        @for (linea of datos.detalle; track linea) {
+          <li>{{ linea }}</li>
+        }
+      </ul>
+    }
+  </div>
+</div>
+<div class="acciones">
+  <button type="button" class="sb-btn sb-btn-primario" cdkFocusInitial (click)="cerrar()">{{ aceptar }}</button>
+</div>
