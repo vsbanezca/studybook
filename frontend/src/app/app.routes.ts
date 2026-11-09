@@ -1,6 +1,6 @@
 import { isDevMode } from '@angular/core';
 import { Routes } from '@angular/router';
-import { miembroGuard } from './core/admin.guard';
+import { adminGuard, miembroGuard } from './core/admin.guard';
 import { authGuard, sinSesionGuard } from './core/auth.guard';
 
 export const routes: Routes = [
@@ -15,6 +15,11 @@ export const routes: Routes = [
     canActivate: [authGuard],
     loadComponent: () =>
       import('./espacios/consultar-espacios/consultar-espacios.component').then((m) => m.ConsultarEspaciosComponent),
+  },
+  {
+    path: 'espacios/nuevo',
+    canActivate: [adminGuard],
+    loadComponent: () => import('./espacios/crear-espacio/crear-espacio.component').then((m) => m.CrearEspacioComponent),
   },
   {
     path: 'mis-reservas',
