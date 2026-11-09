@@ -1,0 +1,4 @@
+/* En celular la barra de navegacion va abajo: se deja espacio para que no tape el contenido */
+@media (max-width: 767.98px) {
+  .con-nav { padding-bottom: 72px; }
+}

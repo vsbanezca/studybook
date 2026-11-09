@@ -1,0 +1,57 @@
+<main class="pantalla">
+  <aside class="panel sb-textura">
+    <sb-wordmark [size]="44" variante="claro" />
+  </aside>
+
+  <section class="formulario">
+    <form class="contenido" [formGroup]="form" (ngSubmit)="enviar()" novalidate>
+      <h1 class="sb-titulo-pantalla">Iniciar sesión</h1>
+
+      <div class="sb-campo">
+        <label class="sb-etiqueta" for="correo">Correo</label>
+        <input
+          #correoEl
+          id="correo"
+          class="sb-input"
+          type="email"
+          formControlName="correo"
+          autocomplete="username"
+          [attr.aria-invalid]="mostrarErrorCorreo() ? 'true' : null"
+          [attr.aria-describedby]="mostrarErrorCorreo() ? 'correo-error' : null"
+        />
+        @if (mostrarErrorCorreo()) {
+          <span class="sb-error-texto" id="correo-error"><sb-icon nombre="circle-alert" />{{ errorCorreo() }}</span>
+        }
+      </div>
+
+      <div class="sb-campo">
+        <label class="sb-etiqueta" for="clave">Contraseña</label>
+        <input
+          #claveEl
+          id="clave"
+          class="sb-input"
+          type="password"
+          formControlName="clave"
+          autocomplete="current-password"
+          [attr.aria-invalid]="mostrarErrorClave() ? 'true' : null"
+          [attr.aria-describedby]="mostrarErrorClave() ? 'clave-error' : null"
+        />
+        @if (mostrarErrorClave()) {
+          <span class="sb-error-texto" id="clave-error"><sb-icon nombre="circle-alert" />{{ errorClave() }}</span>
+        }
+      </div>
+
+      <div class="acciones">
+        <button type="button" class="sb-btn sb-btn-secundario" (click)="cancelar()">Cancelar</button>
+        <button
+          type="submit"
+          class="sb-btn sb-btn-primario"
+          [disabled]="enviando()"
+          [attr.aria-busy]="enviando() ? 'true' : null"
+        >
+          Iniciar sesión
+        </button>
+      </div>
+    </form>
+  </section>
+</main>

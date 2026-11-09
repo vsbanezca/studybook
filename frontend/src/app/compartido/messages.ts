@@ -15,7 +15,12 @@ export const MSG = {
     correoNoUcab:      'Usa tu correo institucional de la UCAB.',                 // PROPUESTA
     clavesDistintas:   'Las contraseñas no coinciden.',                           // PROPUESTA
     confirmar:         '¿Confirmas el registro?',                                 // PROPUESTA
-    credencialesMal:   'Correo o contraseña incorrectos',                        // PROPUESTA
+    credencialesMal:   'Correo o contraseña incorrectos',                        // LITERAL
+    datosInvalidos:    'Datos proporcionados incorrectos',                        // LITERAL
+    correoObligatorio: 'El correo es obligatorio',                                // PROPUESTA
+    correoFormato:     'El correo debe tener formato de correo electrónico',                    // PROPUESTA
+    claveObligatoria:  'La contraseña es obligatoria',                            // PROPUESTA
+    errorServidor:     'No se pudo conectar con el servidor. Inténtalo de nuevo.', // PROPUESTA
   },
   espacio: {
     creado:            'El espacio se ha creado exitosamente',                    // PROPUESTA

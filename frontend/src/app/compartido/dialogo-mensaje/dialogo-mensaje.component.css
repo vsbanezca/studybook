@@ -1,0 +1,14 @@
+:host { display: block; }
+.mensaje {
+  display: flex; align-items: flex-start; gap: var(--sb-space-3);
+  padding: var(--sb-space-3) var(--sb-space-4); margin-bottom: var(--sb-space-6);
+  border-radius: var(--sb-radius-control); background: var(--sb-error-bg); color: var(--sb-error-text);
+}
+.icono { font-size: 20px; margin-top: 2px; color: var(--sb-error); }
+.cuerpo { min-width: 0; }
+.titulo { margin: 0; font-size: 16px; line-height: 22px; font-weight: 500; }
+.detalle { margin: var(--sb-space-2) 0 0; padding-left: var(--sb-space-4); font-size: 12px; line-height: 16px; }
+.acciones { display: flex; justify-content: flex-end; }
+@media (max-width: 767.98px) {
+  .acciones .sb-btn { width: 100%; }
+}
