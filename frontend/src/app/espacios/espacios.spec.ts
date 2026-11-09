@@ -171,6 +171,37 @@ describe('CrearEspacioComponent', () => {
     await fixture.whenStable();
     expect(modal('sb-dialogo-mensaje')?.textContent).toContain('No tienes permiso para ver esta página');
   });
+  it('si el servidor dice que el espacio ya existe, muestra el texto exacto con Aceptar y conserva los datos', async () => {
+    llenar();
+    await enviar();
+    botonModal('Sí').click();
+    http.expectOne('/api/espacios').flush({ mensaje: 'Ya existe un espacio con ese nombre en esa ubicación', campos: {} }, { status: 400, statusText: 'Bad Request' });
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(modal('sb-dialogo-mensaje')?.textContent).toContain('Ya existe un espacio con ese nombre en esa ubicación');
+    botonModal('Aceptar').click();
+    fixture.detectChanges();
+    expect(modal('sb-dialogo-mensaje')).toBeFalsy();
+    expect(campo('nombre').value).toBe('Sala 5');
+    expect(campo('ubicacion').value).toBe('Ingeniería');
+    expect(campo('piso').value).toBe('3');
+    expect(campo('capacidad').value).toBe('8');
+  });
+
+  it('si el servidor dice que un campo es obligatorio, lo indica con Aceptar y conserva los datos', async () => {
+    llenar();
+    await enviar();
+    botonModal('Sí').click();
+    http.expectOne('/api/espacios').flush({ mensaje: 'Datos proporcionados incorrectos', campos: { piso: 'Este campo es obligatorio.' } }, { status: 400, statusText: 'Bad Request' });
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const texto = modal('sb-dialogo-mensaje')?.textContent ?? '';
+    expect(texto).toContain('Datos proporcionados incorrectos');
+    expect(texto).toContain('Piso: Este campo es obligatorio.');
+    botonModal('Aceptar').click();
+    fixture.detectChanges();
+    expect(campo('nombre').value).toBe('Sala 5');
+  });
 });
 
 describe('flujo crear y volver a ver el espacio', () => {
