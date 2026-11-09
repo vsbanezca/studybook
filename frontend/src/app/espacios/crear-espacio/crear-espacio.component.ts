@@ -103,7 +103,10 @@ export class CrearEspacioComponent {
       },
       error: (error: unknown) => {
         this.enviando.set(false);
-        this.dialog.open(DialogoMensajeComponent, opcionesDialogoMensaje({ titulo: this.textoDeError(error) }));
+        this.dialog.open(
+          DialogoMensajeComponent,
+          opcionesDialogoMensaje({ titulo: this.textoDeError(error), detalle: this.detalleDeError(error) })
+        );
       }
     });
   }
@@ -111,6 +114,17 @@ export class CrearEspacioComponent {
   aceptarMensajeExito(): void {
     // Al presionar "Aceptar", se vuelve a la pantalla de consulta de espacios
     this.router.navigateByUrl('/espacios');
+  }
+
+  /** Errores por campo que devuelve el servidor, con la misma etiqueta del formulario. */
+  private detalleDeError(error: unknown): string[] | undefined {
+    const campos = error instanceof HttpErrorResponse ? error.error?.campos : undefined;
+    if (!campos || typeof campos !== 'object') return undefined;
+    const etiquetas: Record<string, string> = {
+      nombre: 'Nombre del espacio', ubicacion: 'Ubicación', piso: 'Piso', capacidad: 'Capacidad',
+    };
+    const lista = Object.entries(campos).map(([campo, texto]) => `${etiquetas[campo] ?? campo}: ${texto}`);
+    return lista.length > 0 ? lista : undefined;
   }
 
   private textoDeError(error: unknown): string {
