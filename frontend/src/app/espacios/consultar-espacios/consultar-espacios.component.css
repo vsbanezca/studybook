@@ -1,32 +1,30 @@
+:host { display: block; }
+
 .contenedor-pantalla {
-  max-width: 1120px; /* Contenedor máximo definido en el diseño */
+  max-width: var(--sb-container);
   margin: 0 auto;
-  padding: 32px;
+  padding: var(--sb-space-8);
 }
 
 .texto-apoyo {
-  font-family: 'Inter', sans-serif;
-  font-size: 12px;
-  color: var(--sb-apoyo-color); 
-  margin-bottom: 24px;
+  margin: var(--sb-space-2) 0 var(--sb-space-6);
 }
 
 .grid-espacios {
   display: grid;
-  /* Cuadrícula exacta de la guía de estilo */
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--sb-space-4);
 }
 
 .acciones-fijas {
   display: flex;
   justify-content: flex-end;
-  margin-top: 32px;
+  margin-top: var(--sb-space-8);
 }
 
 /* Adaptación a celular */
-@media (max-width: 768px) {
+@media (max-width: 767.98px) {
   .contenedor-pantalla {
-    padding: 16px;
+    padding: var(--sb-space-4);
   }
 }

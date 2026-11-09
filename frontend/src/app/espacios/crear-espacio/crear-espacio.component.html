@@ -1,61 +1,69 @@
-<app-sb-header titulo="Crear espacio"></app-sb-header>
+<main class="contenedor-pantalla">
+  <h1 class="sb-titulo-pantalla">Crear espacio</h1>
+  <p class="texto-apoyo sb-apoyo">Registra un espacio de estudio para que los miembros puedan reservarlo.</p>
 
-<div class="contenedor-pantalla">
-  <p class="texto-apoyo">Registra un espacio de estudio para que los miembros puedan reservarlo.</p>
+  @if (mostrarMensajeExito()) {
+    <sb-message tipo="exito" [texto]="textoExito" (aceptado)="aceptarMensajeExito()" />
+  } @else {
+    <form (ngSubmit)="solicitarConfirmacion()" novalidate>
+      <div class="grupo-campo sb-campo">
+        <label for="nombre" class="etiqueta-campo sb-etiqueta">Nombre del espacio</label>
+        <input type="text" id="nombre" name="nombre" [(ngModel)]="nuevoEspacio.nombre" class="sb-input"
+          [attr.aria-invalid]="errorDe('nombre') ? 'true' : null"
+          [attr.aria-describedby]="errorDe('nombre') ? 'nombre-error' : null">
+        @if (errorDe('nombre')) {
+          <span class="sb-error-texto" id="nombre-error"><sb-icon nombre="circle-alert" />{{ errorDe('nombre') }}</span>
+        }
+      </div>
 
-  <!-- Banner de éxito de la Guía de Estilo -->
-  <app-sb-message 
-    *ngIf="mostrarMensajeExito" 
-    tipo="exito" 
-    [texto]="textoExito" 
-    (aceptar)="aceptarMensajeExito()">
-  </app-sb-message>
+      <div class="grupo-campo sb-campo">
+        <label for="ubicacion" class="etiqueta-campo sb-etiqueta">Ubicación (edificio)</label>
+        <input type="text" id="ubicacion" name="ubicacion" [(ngModel)]="nuevoEspacio.ubicacion" class="sb-input"
+          [attr.aria-invalid]="errorDe('ubicacion') ? 'true' : null"
+          [attr.aria-describedby]="errorDe('ubicacion') ? 'ubicacion-error' : null">
+        @if (errorDe('ubicacion')) {
+          <span class="sb-error-texto" id="ubicacion-error"><sb-icon nombre="circle-alert" />{{ errorDe('ubicacion') }}</span>
+        }
+      </div>
 
-  <form (ngSubmit)="solicitarConfirmacion()" #espacioForm="ngForm" *ngIf="!mostrarMensajeExito">
-    <div class="grupo-campo">
-      <label for="nombre" class="etiqueta-campo">Nombre del espacio</label>
-      <input type="text" id="nombre" name="nombre" [(ngModel)]="nuevoEspacio.nombre" required class="input-base">
-    </div>
+      <div class="grupo-campo sb-campo">
+        <label for="piso" class="etiqueta-campo sb-etiqueta">Piso</label>
+        <input type="text" id="piso" name="piso" [(ngModel)]="nuevoEspacio.piso" class="sb-input"
+          [attr.aria-invalid]="errorDe('piso') ? 'true' : null"
+          [attr.aria-describedby]="errorDe('piso') ? 'piso-error' : null">
+        @if (errorDe('piso')) {
+          <span class="sb-error-texto" id="piso-error"><sb-icon nombre="circle-alert" />{{ errorDe('piso') }}</span>
+        }
+      </div>
 
-    <div class="grupo-campo">
-      <label for="ubicacion" class="etiqueta-campo">Ubicación (edificio)</label>
-      <input type="text" id="ubicacion" name="ubicacion" [(ngModel)]="nuevoEspacio.ubicacion" required class="input-base">
-    </div>
-    
-    <div class="grupo-campo">
-      <label for="piso" class="etiqueta-campo">Piso</label>
-      <input type="text" id="piso" name="piso" [(ngModel)]="nuevoEspacio.piso" required class="input-base">
-    </div>
+      <div class="grupo-campo sb-campo">
+        <label for="descripcion" class="etiqueta-campo sb-etiqueta">Descripción (opcional)</label>
+        <textarea id="descripcion" name="descripcion" rows="3" [(ngModel)]="nuevoEspacio.descripcion" class="sb-input"></textarea>
+      </div>
 
-    <div class="grupo-campo">
-      <label for="descripcion" class="etiqueta-campo">Descripción (opcional)</label>
-      <textarea id="descripcion" name="descripcion" [(ngModel)]="nuevoEspacio.descripcion" class="input-base"></textarea>
-    </div>
+      <div class="grupo-campo sb-campo">
+        <label for="capacidad" class="etiqueta-campo sb-etiqueta">Capacidad (personas)</label>
+        <input type="number" id="capacidad" name="capacidad" min="1" step="1" [(ngModel)]="nuevoEspacio.capacidad" class="sb-input"
+          aria-describedby="capacidad-ayuda" [attr.aria-invalid]="errorDe('capacidad') ? 'true' : null">
+        @if (errorDe('capacidad')) {
+          <span class="sb-error-texto" id="capacidad-error"><sb-icon nombre="circle-alert" />{{ errorDe('capacidad') }}</span>
+        }
+        <small class="sb-apoyo" id="capacidad-ayuda">Número entero mayor que 0.</small>
+      </div>
 
-    <div class="grupo-campo">
-      <label for="capacidad" class="etiqueta-campo">Capacidad (personas)</label>
-      <input type="number" id="capacidad" name="capacidad" [(ngModel)]="nuevoEspacio.capacidad" required min="1" class="input-base">
-      <small class="texto-apoyo">Número entero mayor que 0.</small>
-    </div>
+      <div class="acciones-formulario">
+        <a class="sb-btn sb-btn-secundario" routerLink="/espacios">Cancelar</a>
+        <button type="submit" class="sb-btn sb-btn-primario" [disabled]="enviando()" [attr.aria-busy]="enviando() ? 'true' : null">
+          Crear espacio
+        </button>
+      </div>
+    </form>
+  }
 
-    <!-- Acciones principales -->
-    <div class="acciones-formulario">
-      <button type="button" class="btn-secundario" routerLink="/espacios">Cancelar</button>
-      <button type="submit" class="btn-primario" [disabled]="!espacioForm.form.valid">Crear espacio</button>
-    </div>
-  </form>
-
-  <!-- Modal de confirmación (Sí/No) -->
-  <app-sb-confirm-dialog 
-    *ngIf="mostrarModalConfirmacion"
-    titulo="¿Confirmas la creación del espacio?"
-    (respuestaNo)="cancelarConfirmacion()"
-    (respuestaSi)="confirmarCreacion()">
-    <div class="contenido-modal">
-        <p><strong>Nombre:</strong> {{ nuevoEspacio.nombre }}</p>
-        <p><strong>Ubicación:</strong> {{ nuevoEspacio.ubicacion }}</p>
-        <p><strong>Piso:</strong> {{ nuevoEspacio.piso }}</p>
-        <p><strong>Capacidad:</strong> {{ nuevoEspacio.capacidad }} personas</p>
-    </div>
-  </app-sb-confirm-dialog>
-</div>
+  <sb-confirm-dialog
+    [abierto]="mostrarModalConfirmacion()"
+    [titulo]="textoConfirmar"
+    [datos]="datosConfirmacion"
+    (confirmado)="confirmarCreacion()"
+    (rechazado)="cancelarConfirmacion()" />
+</main>

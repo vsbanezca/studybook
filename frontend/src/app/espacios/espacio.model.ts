@@ -3,6 +3,6 @@ export interface Espacio {
   nombre: string;
   ubicacion: string;
   piso: string;
-  descripcion?: string; // El "?" le dice a Angular que este dato puede faltar
+  descripcion?: string;
   capacidad: number;
 }
