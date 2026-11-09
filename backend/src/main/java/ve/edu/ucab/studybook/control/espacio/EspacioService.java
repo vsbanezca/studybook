@@ -10,6 +10,10 @@ import ve.edu.ucab.studybook.model.Espacio;
 @Service
 public class EspacioService {
 
+	// Textos de frontend/src/app/compartido/messages.ts
+	static final String CAMPO_OBLIGATORIO = "Este campo es obligatorio.";
+	static final String CAPACIDAD_INVALIDA = "La capacidad debe ser un número entero mayor que 0";
+
 	private final EspacioRepository repositorio;
 
 	public EspacioService(EspacioRepository repositorio) {
@@ -21,10 +25,20 @@ public class EspacioService {
 	}
 
 	public Espacio crearEspacio(EspacioRequest request) {
-		if (request.getCapacidad() <= 0) {
-			throw new ValidacionException("La capacidad debe ser mayor que 0.");
+		String nombre = obligatorio(request.getNombre(), "nombre");
+		String ubicacion = obligatorio(request.getUbicacion(), "ubicacion");
+		String piso = obligatorio(request.getPiso(), "piso");
+		if (request.getCapacidad() < 1) {
+			throw new ValidacionException(CAPACIDAD_INVALIDA, "capacidad");
 		}
-		return repositorio.guardar(new Espacio(null, request.getNombre(), request.getUbicacion(), request.getPiso(),
-				request.getDescripcion(), request.getCapacidad()));
+		String descripcion = request.getDescripcion() == null ? "" : request.getDescripcion().trim();
+		return repositorio.guardar(new Espacio(null, nombre, ubicacion, piso, descripcion, request.getCapacidad()));
+	}
+
+	private static String obligatorio(String valor, String campo) {
+		if (valor == null || valor.isBlank()) {
+			throw new ValidacionException(CAMPO_OBLIGATORIO, campo);
+		}
+		return valor.trim();
 	}
 }

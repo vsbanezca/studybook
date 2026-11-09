@@ -35,7 +35,11 @@ public class GlobalExceptionHandler {
 
 	@ExceptionHandler(ValidacionException.class)
 	public ResponseEntity<ErrorResponse> validacion(ValidacionException ex) {
-		return ResponseEntity.badRequest().body(new ErrorResponse(ex.getMessage(), Map.of()));
+		if (ex.getCampo() == null) {
+			return ResponseEntity.badRequest().body(new ErrorResponse(ex.getMessage(), Map.of()));
+		}
+		return ResponseEntity.badRequest()
+				.body(new ErrorResponse(DATOS_INCORRECTOS, Map.of(ex.getCampo(), ex.getMessage())));
 	}
 
 	@ExceptionHandler(NoAutorizadoException.class)
