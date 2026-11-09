@@ -1,5 +1,5 @@
 export interface Espacio {
-  id?: string;
+  id?: number;
   nombre: string;
   ubicacion: string;
   piso: string;

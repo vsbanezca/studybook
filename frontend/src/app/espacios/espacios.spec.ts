@@ -8,7 +8,7 @@ import { ConsultarEspaciosComponent } from './consultar-espacios/consultar-espac
 import { CrearEspacioComponent } from './crear-espacio/crear-espacio.component';
 import { Espacio } from './espacio.model';
 
-const SALA: Espacio = { id: 'a1', nombre: 'Sala de estudio 3', ubicacion: 'Biblioteca', piso: '2', capacidad: 6 };
+const SALA: Espacio = { id: 1, nombre: 'Sala de estudio 3', ubicacion: 'Biblioteca', piso: '2', capacidad: 6 };
 
 function montar<T>(tipo: Type<T>, rol: 'MIEMBRO' | 'ADMINISTRADOR' | null) {
   TestBed.configureTestingModule({
@@ -154,7 +154,7 @@ describe('CrearEspacioComponent', () => {
     const req = http.expectOne('/api/espacios');
     expect(req.request.method).toBe('POST');
     expect(req.request.body).toMatchObject({ nombre: 'Sala 5', ubicacion: 'Ingeniería', piso: '3', capacidad: 8 });
-    req.flush({ id: 'n1', ...req.request.body });
+    req.flush({ id: 99, ...req.request.body });
     fixture.detectChanges();
     await fixture.whenStable();
     expect(el.textContent).toContain('El espacio se ha creado exitosamente');
@@ -193,7 +193,7 @@ describe('flujo crear y volver a ver el espacio', () => {
     await crear.fixture.whenStable();
     [...document.querySelectorAll<HTMLButtonElement>('.cdk-overlay-container button')].find((b) => b.textContent?.trim() === 'Sí')!.click();
     const req = crear.http.expectOne('/api/espacios');
-    creados.push({ id: 'n1', ...req.request.body });
+    creados.push({ id: 99, ...req.request.body });
     req.flush(creados[0]);
     crear.el.remove();
 
