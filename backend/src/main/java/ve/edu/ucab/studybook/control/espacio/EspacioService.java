@@ -14,6 +14,8 @@ public class EspacioService {
 	static final String CAMPO_OBLIGATORIO = "Este campo es obligatorio.";
 	static final String CAPACIDAD_INVALIDA = "La capacidad debe ser un número entero mayor que 0";
 
+	static final String ESPACIO_REPETIDO = "Ya existe un espacio con ese nombre en esa ubicación";
+
 	private final EspacioRepository repositorio;
 
 	public EspacioService(EspacioRepository repositorio) {
@@ -32,7 +34,9 @@ public class EspacioService {
 			throw new ValidacionException(CAPACIDAD_INVALIDA, "capacidad");
 		}
 		String descripcion = request.getDescripcion() == null ? "" : request.getDescripcion().trim();
-		return repositorio.guardar(new Espacio(null, nombre, ubicacion, piso, descripcion, request.getCapacidad()));
+		return repositorio
+				.guardarSiNoExiste(new Espacio(null, nombre, ubicacion, piso, descripcion, request.getCapacidad()))
+				.orElseThrow(() -> new ValidacionException(ESPACIO_REPETIDO));
 	}
 
 	private static String obligatorio(String valor, String campo) {

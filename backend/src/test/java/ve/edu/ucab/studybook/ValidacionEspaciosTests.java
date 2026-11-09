@@ -80,4 +80,21 @@ class ValidacionEspaciosTests {
 		MockHttpServletResponse r = crear("{\"nombre\":\"N\",\"ubicacion\":\"U\",\"piso\":\"1\",\"capacidad\":2.5}");
 		assertThat(r.getStatus()).isEqualTo(400);
 	}
+
+	@Test
+	void duplicadoDa400ConElMensajeLiteralYSeToleraMayusculasYEspacios() throws Exception {
+		assertThat(crear(json("Sala dup", "Biblioteca dup", "1", 4)).getStatus()).isEqualTo(200);
+		for (String cuerpo : new String[] { json("Sala dup", "Biblioteca dup", "2", 8),
+				json("  SALA DUP ", " biblioteca DUP  ", "1", 4) }) {
+			MockHttpServletResponse r = crear(cuerpo);
+			assertThat(r.getStatus()).isEqualTo(400);
+			assertThat(r.getContentAsString()).contains("Ya existe un espacio con ese nombre en esa ubicación");
+		}
+	}
+
+	@Test
+	void mismoNombreEnOtraUbicacionSePermite() throws Exception {
+		assertThat(crear(json("Sala otra", "Ubicacion A", "1", 4)).getStatus()).isEqualTo(200);
+		assertThat(crear(json("Sala otra", "Ubicacion B", "1", 4)).getStatus()).isEqualTo(200);
+	}
 }
