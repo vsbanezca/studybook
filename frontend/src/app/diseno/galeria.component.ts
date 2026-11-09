@@ -34,9 +34,9 @@ export class GaleriaComponent {
     ['--sb-warn-bg', 'Aviso tinte'], ['--sb-info-bg', 'Info tinte'],
   ];
   protected readonly espacios: Espacio[] = [
-    { id: 1, nombre: 'Sala de estudio 3', ubicacion: 'Biblioteca', piso: 2, capacidad: 6 },
-    { id: 2, nombre: 'Cubículo 12', ubicacion: 'Biblioteca', piso: 1, capacidad: 2 },
-    { id: 3, nombre: 'Sala de proyectos A', ubicacion: 'Ingeniería', piso: 3, capacidad: 8 },
+    { id: '1', nombre: 'Sala de estudio 3', ubicacion: 'Biblioteca', piso: '2', capacidad: 6 },
+    { id: '2', nombre: 'Cubículo 12', ubicacion: 'Biblioteca', piso: '1', capacidad: 2 },
+    { id: '3', nombre: 'Sala de proyectos A', ubicacion: 'Ingeniería', piso: '3', capacidad: 8 },
   ];
   protected readonly seleccionado = signal<number | string | undefined>(2);
   protected readonly modalAbierto = signal(false);

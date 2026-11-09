@@ -31,3 +31,8 @@ export const MSG = {
   },
   comunes: { campoObligatorio: 'Este campo es obligatorio.', aceptar: 'Aceptar', si: 'Sí', no: 'No' },
 } as const;
+
+export const mensajes = {
+  espacioCreado: 'El espacio se ha creado exitosamente',
+  // Aquí podrás agregar los demás mensajes en el futuro
+};

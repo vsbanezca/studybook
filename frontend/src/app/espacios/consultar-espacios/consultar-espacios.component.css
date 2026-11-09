@@ -1,0 +1,32 @@
+.contenedor-pantalla {
+  max-width: 1120px; /* Contenedor máximo definido en el diseño */
+  margin: 0 auto;
+  padding: 32px;
+}
+
+.texto-apoyo {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  color: var(--sb-apoyo-color); 
+  margin-bottom: 24px;
+}
+
+.grid-espacios {
+  display: grid;
+  /* Cuadrícula exacta de la guía de estilo */
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
+  gap: 16px;
+}
+
+.acciones-fijas {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 32px;
+}
+
+/* Adaptación a celular */
+@media (max-width: 768px) {
+  .contenedor-pantalla {
+    padding: 16px;
+  }
+}
