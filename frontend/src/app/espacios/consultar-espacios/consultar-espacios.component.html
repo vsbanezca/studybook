@@ -1,0 +1,29 @@
+<app-sb-header titulo="Espacios"></app-sb-header>
+
+<div class="contenedor-pantalla">
+  <p class="texto-apoyo" *ngIf="espacios.length > 0">Elige un espacio para reservarlo o ver su equipamiento.</p>
+  
+  <!-- Componente de estado vacío -->
+  <app-sb-empty-state 
+    *ngIf="espacios.length === 0" 
+    titulo="No hay espacios registrados"
+    mensaje="Cuando el administrador agregue espacios, podrás reservarlos aquí.">
+  </app-sb-empty-state>
+
+  <!-- Cuadrícula de tarjetas -->
+  <div class="grid-espacios" *ngIf="espacios.length > 0">
+    <app-sb-space-card *ngFor="let espacio of espacios"
+      [nombre]="espacio.nombre"
+      [ubicacion]="espacio.ubicacion"
+      [piso]="espacio.piso"
+      [capacidad]="espacio.capacidad">
+    </app-sb-space-card>
+  </div>
+
+  <!-- Botón exclusivo para el Administrador -->
+  <div class="acciones-fijas" *ngIf="esAdministrador">
+    <button class="btn-primario" routerLink="/espacios/nuevo">
+      Crear espacio
+    </button>
+  </div>
+</div>

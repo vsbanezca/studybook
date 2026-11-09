@@ -1,0 +1,61 @@
+<app-sb-header titulo="Crear espacio"></app-sb-header>
+
+<div class="contenedor-pantalla">
+  <p class="texto-apoyo">Registra un espacio de estudio para que los miembros puedan reservarlo.</p>
+
+  <!-- Banner de éxito de la Guía de Estilo -->
+  <app-sb-message 
+    *ngIf="mostrarMensajeExito" 
+    tipo="exito" 
+    [texto]="textoExito" 
+    (aceptar)="aceptarMensajeExito()">
+  </app-sb-message>
+
+  <form (ngSubmit)="solicitarConfirmacion()" #espacioForm="ngForm" *ngIf="!mostrarMensajeExito">
+    <div class="grupo-campo">
+      <label for="nombre" class="etiqueta-campo">Nombre del espacio</label>
+      <input type="text" id="nombre" name="nombre" [(ngModel)]="nuevoEspacio.nombre" required class="input-base">
+    </div>
+
+    <div class="grupo-campo">
+      <label for="ubicacion" class="etiqueta-campo">Ubicación (edificio)</label>
+      <input type="text" id="ubicacion" name="ubicacion" [(ngModel)]="nuevoEspacio.ubicacion" required class="input-base">
+    </div>
+    
+    <div class="grupo-campo">
+      <label for="piso" class="etiqueta-campo">Piso</label>
+      <input type="text" id="piso" name="piso" [(ngModel)]="nuevoEspacio.piso" required class="input-base">
+    </div>
+
+    <div class="grupo-campo">
+      <label for="descripcion" class="etiqueta-campo">Descripción (opcional)</label>
+      <textarea id="descripcion" name="descripcion" [(ngModel)]="nuevoEspacio.descripcion" class="input-base"></textarea>
+    </div>
+
+    <div class="grupo-campo">
+      <label for="capacidad" class="etiqueta-campo">Capacidad (personas)</label>
+      <input type="number" id="capacidad" name="capacidad" [(ngModel)]="nuevoEspacio.capacidad" required min="1" class="input-base">
+      <small class="texto-apoyo">Número entero mayor que 0.</small>
+    </div>
+
+    <!-- Acciones principales -->
+    <div class="acciones-formulario">
+      <button type="button" class="btn-secundario" routerLink="/espacios">Cancelar</button>
+      <button type="submit" class="btn-primario" [disabled]="!espacioForm.form.valid">Crear espacio</button>
+    </div>
+  </form>
+
+  <!-- Modal de confirmación (Sí/No) -->
+  <app-sb-confirm-dialog 
+    *ngIf="mostrarModalConfirmacion"
+    titulo="¿Confirmas la creación del espacio?"
+    (respuestaNo)="cancelarConfirmacion()"
+    (respuestaSi)="confirmarCreacion()">
+    <div class="contenido-modal">
+        <p><strong>Nombre:</strong> {{ nuevoEspacio.nombre }}</p>
+        <p><strong>Ubicación:</strong> {{ nuevoEspacio.ubicacion }}</p>
+        <p><strong>Piso:</strong> {{ nuevoEspacio.piso }}</p>
+        <p><strong>Capacidad:</strong> {{ nuevoEspacio.capacidad }} personas</p>
+    </div>
+  </app-sb-confirm-dialog>
+</div>
