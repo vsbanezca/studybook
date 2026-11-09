@@ -4,3 +4,12 @@
 .DS_Store
 Thumbs.db
 backend/data/
+
+# Documentos de trabajo del equipo: solo locales
+docs-local/
+Iniciar_Sesion_Entrega_*.md
+Crear_Reserva_Entrega_*.md
+Guia_de_estilo_decisiones.md
+Perfil_de_la_profesora.md
+Prompt_*.md
+StudyBook_Guia_de_estilo.pdf
