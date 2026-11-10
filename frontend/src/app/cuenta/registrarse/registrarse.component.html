@@ -1,0 +1,57 @@
+<div class="register-container">
+  <div class="sb-card">
+    <h1>Registrarse</h1>
+    <p>Usa tu correo institucional de la UCAB.</p>
+
+    <!-- Banner de error vinculado a MSG -->
+    <div *ngIf="errorMessage" class="sb-message sb-message-error" role="alert">
+      <span>{{ errorMessage }}</span>
+      <button class="sb-btn-accept" (click)="errorMessage = null">{{ msg.comunes.aceptar }}</button>
+    </div>
+
+    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+      <div class="form-group">
+        <label>Nombre completo</label>
+        <input type="text" formControlName="nombreCompleto" placeholder="María Pérez" class="sb-input" />
+      </div>
+
+      <div class="form-group">
+        <label>Cédula</label>
+        <input type="text" formControlName="cedula" placeholder="V-12345678" class="sb-input" />
+      </div>
+
+      <div class="form-group">
+        <label>Correo institucional</label>
+        <input type="email" formControlName="correo" placeholder="nombre@ucab.edu.ve" class="sb-input" />
+      </div>
+
+      <div class="form-group">
+        <label>Teléfono</label>
+        <input type="text" formControlName="telefono" placeholder="0414-1234567" class="sb-input" />
+      </div>
+
+      <div class="form-group">
+        <label>Contraseña</label>
+        <input type="password" formControlName="contrasena" class="sb-input" />
+        <small class="sb-help-text">Mínimo 8 caracteres.</small>
+      </div>
+
+      <div class="form-group">
+        <label>Confirmar contraseña</label>
+        <input type="password" formControlName="confirmarContrasena" class="sb-input" />
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="sb-btn-secondary" (click)="onCancel()">Cancelar</button>
+        <button type="submit" class="sb-btn-primary" [disabled]="isLoading">
+          <span *ngIf="isLoading" class="sb-spinner"></span>
+          Registrarse
+        </button>
+      </div>
+    </form>
+
+    <div class="login-redirect">
+      <a routerLink="/iniciar-sesion">¿Ya tienes cuenta? Inicia sesión</a>
+    </div>
+  </div>
+</div>
