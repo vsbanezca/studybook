@@ -44,7 +44,10 @@ public class AutorizacionInterceptor implements HandlerInterceptor {
 			return true;
 		}
 		boolean esEspacios = ruta.equals("/api/espacios") || ruta.startsWith("/api/espacios/");
-		boolean soloLectura = "GET".equals(metodo) || "HEAD".equals(metodo);
-		return esEspacios && !soloLectura;
-	}
+        boolean esEquipamientos = ruta.equals("/api/equipamientos") || ruta.startsWith("/api/equipamientos/");
+
+        boolean soloLectura = "GET".equals(metodo) || "HEAD".equals(metodo);
+        
+        return (esEspacios || esEquipamientos) && !soloLectura;
+    }
 }
