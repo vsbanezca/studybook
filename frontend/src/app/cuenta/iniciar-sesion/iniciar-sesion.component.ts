@@ -2,7 +2,7 @@ import { Dialog } from '@angular/cdk/dialog';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, ElementRef, inject, signal, viewChild } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { MSG } from '../../compartido/messages';
 import { opcionesDialogoMensaje, DialogoMensajeComponent } from '../../compartido/dialogo-mensaje/dialogo-mensaje.component';
 import { SbIconComponent } from '../../compartido/ui/sb-icon/sb-icon.component';
@@ -14,7 +14,7 @@ const FORMATO_CORREO = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 @Component({
   selector: 'sb-iniciar-sesion',
-  imports: [ReactiveFormsModule, SbIconComponent, SbWordmarkComponent],
+  imports: [ReactiveFormsModule, RouterLink, SbIconComponent, SbWordmarkComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './iniciar-sesion.component.html',
   styleUrl: './iniciar-sesion.component.css',
@@ -78,13 +78,6 @@ export class IniciarSesionComponent {
         this.alFallar(error);
       },
     });
-  }
-
-  /** Cancelar: se descartan los datos ingresados y no se inicia sesion. */
-  protected cancelar(): void {
-    this.form.reset({ correo: '', clave: '' });
-    this.intentado.set(false);
-    this.correoEl().nativeElement.focus();
   }
 
   private alFallar(error: unknown): void {
