@@ -9,11 +9,12 @@
 
       <div class="grid-espacios">
         @for (espacio of espacios(); track espacio.id) {
-          <!-- «Reservar» solo se ofrece al Miembro; su logica la conecta la historia Crear reserva. -->
+          <!-- «Reservar» solo se ofrece al Miembro. -->
           <sb-space-card
             [espacio]="espacio"
             [modo]="esAdministrador ? 'ver' : 'reservar'"
-            (verEquipamiento)="verEquipamiento($event)" />
+            (verEquipamiento)="verEquipamiento($event)"
+            (reservar)="reservar($event)" />
         }
       </div>
     } @else {
