@@ -6,7 +6,9 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "estilo": "node scripts/verificar-estilo.mjs",
+    "verificar": "npm run estilo && ng build && ng test --no-watch"
   },
   "private": true,
   "packageManager": "npm@11.4.2",
