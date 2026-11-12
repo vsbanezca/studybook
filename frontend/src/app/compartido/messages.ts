@@ -40,6 +40,9 @@ export const MSG = {
     repetido:          'Este espacio ya tiene ese equipamiento',                  // PROPUESTA
     confirmar:         '¿Confirmas el registro del equipamiento?',                // PROPUESTA
     vacio:             'Este espacio no tiene equipamiento registrado',           // PROPUESTA
+    vacioAdmin:        'Agrega el primer equipamiento para este espacio.',        // PROPUESTA
+    vacioMiembro:      'Cuando el administrador agregue equipamiento, aparecerá aquí.', // PROPUESTA
+    espacioNoExiste:   'El espacio indicado no existe',                           // PROPUESTA
   },
   comunes: {
     campoObligatorio: 'Este campo es obligatorio.', aceptar: 'Aceptar', si: 'Sí', no: 'No',

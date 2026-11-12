@@ -1,0 +1,30 @@
+:host { display: block; }
+
+.contenedor-pantalla {
+  max-width: var(--sb-container);
+  margin: 0 auto;
+  padding: var(--sb-space-8);
+}
+
+.encabezado {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  flex-wrap: wrap; gap: var(--sb-space-4); margin-bottom: var(--sb-space-6);
+}
+.texto-apoyo { margin: var(--sb-space-2) 0 0; }
+
+.lista {
+  list-style: none; margin: 0; padding: 0; display: grid; gap: var(--sb-space-4);
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+.tarjeta {
+  display: grid; gap: var(--sb-space-1); padding: var(--sb-space-4);
+  background: var(--sb-bg); border-radius: var(--sb-radius-card); box-shadow: var(--sb-shadow-card);
+}
+.nombre { margin: 0; font-size: 16px; line-height: 22px; font-weight: 500; }
+.dato { margin: 0; color: var(--sb-text-muted); }
+.descripcion { margin: var(--sb-space-2) 0 0; overflow-wrap: anywhere; }
+
+@media (max-width: 767.98px) {
+  .contenedor-pantalla { padding: var(--sb-space-4); }
+  .encabezado .sb-btn { width: 100%; }
+}

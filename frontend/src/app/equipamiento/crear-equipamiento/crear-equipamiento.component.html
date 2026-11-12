@@ -1,0 +1,66 @@
+<main class="contenedor-pantalla">
+  <h1 class="sb-titulo-pantalla">Agregar equipamiento</h1>
+  @if (espacio(); as e) {
+    <p class="texto-apoyo sb-apoyo">Espacio: {{ e.nombre }}, {{ e.ubicacion }}, piso {{ e.piso }}</p>
+  }
+
+  @if (creado()) {
+    <sb-message tipo="exito" [texto]="textoExito" (aceptado)="aceptarExito()" />
+  } @else {
+    <form (ngSubmit)="solicitarConfirmacion()" novalidate>
+      <div class="grupo-campo sb-campo">
+        <label for="nombre" class="sb-etiqueta">Nombre</label>
+        <input type="text" id="nombre" name="nombre" [(ngModel)]="nuevo.nombre" class="sb-input"
+          [attr.aria-invalid]="errorDe('nombre') ? 'true' : null"
+          [attr.aria-describedby]="errorDe('nombre') ? 'nombre-error' : null">
+        @if (errorDe('nombre')) {
+          <span class="sb-error-texto" id="nombre-error"><sb-icon nombre="circle-alert" />{{ errorDe('nombre') }}</span>
+        }
+      </div>
+
+      <div class="grupo-campo sb-campo">
+        <label for="categoria" class="sb-etiqueta">Categoría</label>
+        <input type="text" id="categoria" name="categoria" [(ngModel)]="nuevo.categoria" class="sb-input"
+          [attr.aria-invalid]="errorDe('categoria') ? 'true' : null"
+          [attr.aria-describedby]="errorDe('categoria') ? 'categoria-error' : null">
+        @if (errorDe('categoria')) {
+          <span class="sb-error-texto" id="categoria-error"><sb-icon nombre="circle-alert" />{{ errorDe('categoria') }}</span>
+        }
+      </div>
+
+      <div class="grupo-campo sb-campo">
+        <label for="estado" class="sb-etiqueta">Estado</label>
+        <input type="text" id="estado" name="estado" [(ngModel)]="nuevo.estado" class="sb-input"
+          [attr.aria-invalid]="errorDe('estado') ? 'true' : null"
+          [attr.aria-describedby]="errorDe('estado') ? 'estado-error' : null">
+        @if (errorDe('estado')) {
+          <span class="sb-error-texto" id="estado-error"><sb-icon nombre="circle-alert" />{{ errorDe('estado') }}</span>
+        }
+      </div>
+
+      <div class="grupo-campo sb-campo">
+        <label for="descripcion" class="sb-etiqueta">Descripción</label>
+        <textarea id="descripcion" name="descripcion" rows="3" [(ngModel)]="nuevo.descripcion" class="sb-input"
+          [attr.aria-invalid]="errorDe('descripcion') ? 'true' : null"
+          [attr.aria-describedby]="errorDe('descripcion') ? 'descripcion-error' : null"></textarea>
+        @if (errorDe('descripcion')) {
+          <span class="sb-error-texto" id="descripcion-error"><sb-icon nombre="circle-alert" />{{ errorDe('descripcion') }}</span>
+        }
+      </div>
+
+      <div class="acciones-formulario">
+        <a class="sb-btn sb-btn-secundario" [routerLink]="['/espacios', espacioId, 'equipamiento']">Cancelar</a>
+        <button type="submit" class="sb-btn sb-btn-primario" [disabled]="enviando()" [attr.aria-busy]="enviando() ? 'true' : null">
+          Agregar equipamiento
+        </button>
+      </div>
+    </form>
+  }
+
+  <sb-confirm-dialog
+    [abierto]="confirmando()"
+    [titulo]="textoConfirmar"
+    [datos]="datosConfirmacion"
+    (confirmado)="confirmarCreacion()"
+    (rechazado)="rechazarConfirmacion()" />
+</main>

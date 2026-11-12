@@ -27,6 +27,18 @@ export const routes: Routes = [
     loadComponent: () => import('./espacios/crear-espacio/crear-espacio.component').then((m) => m.CrearEspacioComponent),
   },
   {
+    path: 'espacios/:id/equipamiento',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./equipamiento/consultar-equipamiento/consultar-equipamiento.component').then((m) => m.ConsultarEquipamientoComponent),
+  },
+  {
+    path: 'espacios/:id/equipamiento/nuevo',
+    canActivate: [adminGuard],
+    loadComponent: () =>
+      import('./equipamiento/crear-equipamiento/crear-equipamiento.component').then((m) => m.CrearEquipamientoComponent),
+  },
+  {
     path: 'mis-reservas',
     canActivate: [miembroGuard],
     loadComponent: () =>
