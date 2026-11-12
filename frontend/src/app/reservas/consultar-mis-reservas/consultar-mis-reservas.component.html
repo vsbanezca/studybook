@@ -1,0 +1,45 @@
+<main class="sb-contenedor pantalla">
+  <div class="header-section">
+    <h1 class="sb-titulo-pantalla">Mis reservas</h1>
+    <p>Tus reservas de espacios de estudio.</p>
+    <button class="sb-btn-primary" (click)="irACrearReserva()">Crear reserva</button>
+  </div>
+
+  <!-- Banner de error si falla la carga -->
+  <div *ngIf="errorMessage" class="sb-message sb-message-error" role="alert">
+    <span>{{ errorMessage }}</span>
+    <button class="sb-btn-accept" (click)="cargarMisReservas()">{{ msg.comunes.aceptar }}</button>
+  </div>
+
+  <!-- Estado de carga -->
+  <div *ngIf="isLoading" class="loading-state">
+    <p>Cargando reservas...</p>
+  </div>
+
+  <!-- Lista de Reservas -->
+  <div *ngIf="!isLoading && reservas.length > 0" class="reservas-list">
+    <div *ngFor="let reserva of reservas" class="sb-card-reserva">
+      <div class="reserva-header">
+        <span class="sb-status-chip" [class.active]="reserva.estado === 'ACTIVA'" [class.cancelled]="reserva.estado === 'CANCELADA'">
+          {{ reserva.estado }}
+        </span>
+      </div>
+      <div class="reserva-body">
+        <h3>{{ reserva.espacioNombre }}</h3>
+        <p class="ubicacion">{{ reserva.ubicacion }}</p>
+        <p class="fecha-hora">{{ reserva.fecha }} | {{ reserva.horaInicio }} a {{ reserva.horaFin }}</p>
+        <p class="asistentes">{{ reserva.asistentes }} asistentes</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Estado Vacío (Empty State exigido por la guía)[cite: 9, 27] -->
+  <div *ngIf="!isLoading && reservas.length === 0 && !errorMessage" class="sb-empty-state">
+    <div class="empty-icon-container">
+      <span class="icon-calendar">📅</span>
+    </div>
+    <h2>{{ msg.reserva.sinReservasTitulo }}</h2>
+    <p>{{ msg.reserva.sinReservasDesc }}</p>
+    <button class="sb-btn-primary" (click)="irACrearReserva()">Crear reserva</button>
+  </div>
+</main>
