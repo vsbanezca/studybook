@@ -63,6 +63,43 @@ Fuera de `dev`, la cuenta de Administrador se precarga desde las variables de en
 
 `ng serve` redirige `/api` al backend (`frontend/proxy.conf.json`), por eso no hace falta configurar CORS.
 
+## Cómo correr la demo
+
+1. Backend con datos de ejemplo (perfil `dev`, puerto 8080):
+
+   ```powershell
+   cd backend
+   mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=dev"
+   ```
+
+   Si `mvnw` falla al descargar Maven, usa `mvn spring-boot:run "-Dspring-boot.run.profiles=dev"`.
+2. Frontend (en otra terminal, puerto 4200):
+
+   ```powershell
+   cd frontend
+   npm install
+   ng serve
+   ```
+
+3. Abrir http://localhost:4200 e iniciar sesión con una cuenta de prueba (tabla de arriba), o crear una cuenta nueva con «Registrarse» (correo `@ucab.edu.ve` o `@est.ucab.edu.ve`).
+
+El perfil `dev` carga 3 espacios con capacidades distintas y 2 o 3 equipamientos cada uno, sin duplicarlos si se reinicia. Fuera de `dev` no se precarga nada.
+
+Antes de abrir un pull request: `npm run verificar` en `frontend/` y `mvn test` en `backend/`.
+
+## Estado de las historias del Sprint 1
+
+| Historia | Estado |
+|---|---|
+| Registrarse | Completa (backend y frontend, con pruebas) |
+| Iniciar sesión | Completa |
+| Crear espacio | Completa |
+| Consultar espacios | Completa; el botón «Reservar» se ve al Miembro pero se conecta con Crear reserva |
+| Crear equipamiento | Completa |
+| Consultar equipamiento de un espacio | Completa |
+| Crear reserva | Pendiente (otra rama) |
+| Consultar mis reservas | Solo pantalla y servicio del frontend; falta el backend (`GET /api/reservas/mias`) |
+
 ## Decisiones técnicas
 
 - **Sesión:** cookie de sesión de Spring (`JSESSIONID`, HttpOnly, SameSite=Lax) con la sesión guardada en el servidor. Es lo más simple y seguro para Angular + Spring: el navegador la envía solo y JavaScript no puede leerla, así no se guarda ningún token en el cliente. El rol se valida en el servidor (`AutorizacionInterceptor`): `/api/admin/**` responde 403 a un Miembro.
