@@ -12,6 +12,7 @@ export const MSG = {
     confirmar:         '¿Confirmas la reserva?',                                  // PROPUESTA
     espacioObligatorio: 'Selecciona un espacio',                                  // PROPUESTA
     fechaPasada:       'La fecha no puede estar en el pasado',                    // PROPUESTA
+    horaInicioPasada:  'La hora de inicio no puede ser anterior a la hora actual',  // PROPUESTA (la valida solo el servidor)
     finNoPosterior:    'La hora de fin debe ser posterior a la hora de inicio',   // PROPUESTA
     asistentesInvalidos: 'Los asistentes deben ser un número entero mayor o igual a 1', // PROPUESTA
   },
