@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import { CredencialesLogin, Sesion } from './cuenta.model';
+import { CredencialesLogin, DatosRegistro, Sesion } from './cuenta.model';
 
 @Injectable({ providedIn: 'root' })
 export class CuentaService {
@@ -9,6 +9,11 @@ export class CuentaService {
 
   iniciarSesion(credenciales: CredencialesLogin): Observable<Sesion> {
     return this.http.post<Sesion>('/api/auth/login', credenciales);
+  }
+
+  /** Crea una cuenta de Miembro. No inicia sesion: devuelve los datos publicos de la cuenta nueva. */
+  registrar(datos: DatosRegistro): Observable<Sesion> {
+    return this.http.post<Sesion>('/api/auth/registro', datos);
   }
 
   /** Consulta si el navegador ya tiene una sesion abierta en el servidor. */

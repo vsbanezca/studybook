@@ -50,6 +50,14 @@ body { margin: 0; font-size: 14px; line-height: 20px; font-weight: 400; }
 }
 @keyframes sb-giro { to { transform: rotate(360deg); } }
 
+/* ---------- Enlace de texto (Registrarse / Iniciar sesion) ---------- */
+.sb-enlace {
+  display: inline-flex; align-items: center; min-height: var(--sb-control-h);
+  color: var(--sb-primary-600); font-weight: 500; text-decoration: underline;
+}
+.sb-enlace:hover { color: var(--sb-primary-700); }
+.sb-enlace:active { color: var(--sb-primary-800); }
+
 /* ---------- Campos nativos: input, select, fecha y hora ---------- */
 .sb-campo { display: grid; gap: var(--sb-space-1); }
 .sb-etiqueta { font-weight: 500; }

@@ -1,108 +1,153 @@
-import { Component } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { MatDialog } from '@angular/material/dialog';
-import { Router } from '@angular/router';
-import { DialogoConfirmacionComponent } from '../../compartido/dialogo-confirmacion/dialogo-confirmacion.component';
+import { Dialog } from '@angular/cdk/dialog';
+import { HttpErrorResponse } from '@angular/common/http';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
+import { DialogoMensajeComponent, opcionesDialogoMensaje } from '../../compartido/dialogo-mensaje/dialogo-mensaje.component';
 import { MSG } from '../../compartido/messages';
+import { DatoConfirmacion, SbConfirmDialogComponent } from '../../compartido/ui/sb-confirm-dialog/sb-confirm-dialog.component';
+import { SbIconComponent } from '../../compartido/ui/sb-icon/sb-icon.component';
+import { SbMessageComponent } from '../../compartido/ui/sb-message/sb-message.component';
+import { SbWordmarkComponent } from '../../compartido/ui/sb-wordmark/sb-wordmark.component';
 import { CuentaService } from '../cuenta.service';
 
+const FORMATO_CORREO = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+// SUPOSICION: cedula solo con digitos y telefono de 10 a 15 digitos con + opcional (a confirmar con el equipo).
+const SOLO_DIGITOS = /^\d+$/;
+const FORMATO_TELEFONO = /^\+?\d{10,15}$/;
+const LARGO_MINIMO_CLAVE = 8; // SUPOSICION: minimo 8 caracteres
+
+type Campo = 'nombre' | 'cedula' | 'correo' | 'telefono' | 'clave';
+
+const ETIQUETAS: Record<Campo, string> = {
+  nombre: 'Nombre',
+  cedula: 'Cédula',
+  correo: 'Correo institucional',
+  telefono: 'Teléfono',
+  clave: 'Contraseña',
+};
+
+const ORDEN: Campo[] = ['nombre', 'cedula', 'correo', 'telefono', 'clave'];
+
 @Component({
-  selector: 'app-registrarse',
+  selector: 'sb-registrarse',
+  imports: [ReactiveFormsModule, RouterLink, SbConfirmDialogComponent, SbIconComponent, SbMessageComponent, SbWordmarkComponent],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './registrarse.component.html',
-  styleUrls: ['./registrarse.component.css']
+  styleUrl: './registrarse.component.css',
 })
 export class RegistrarseComponent {
-  registerForm: FormGroup;
-  errorMessage: string | null = null;
-  isLoading = false;
-  msg = MSG;
+  private readonly fb = inject(FormBuilder).nonNullable;
+  private readonly dialog = inject(Dialog);
+  private readonly router = inject(Router);
+  private readonly cuentas = inject(CuentaService);
 
-  constructor(
-    private fb: FormBuilder,
-    private dialog: MatDialog,
-    private router: Router,
-    private cuentaService: CuentaService
-  ) {
-    this.registerForm = this.fb.group({
-      nombreCompleto: ['', [Validators.required]],
-      cedula: ['', [Validators.required, Validators.pattern(/^V-\d{7,8}$/)]],
-      correo: ['', [Validators.required, Validators.email]],
-      telefono: ['', [Validators.required, Validators.pattern(/^04\d{2}-\d{7}$/)]],
-      contrasena: ['', [Validators.required, Validators.minLength(8)]],
-      confirmarContrasena: ['', [Validators.required]]
-    }, { validators: this.passwordMatchValidator });
+  protected readonly form = this.fb.group({
+    nombre: ['', Validators.required],
+    cedula: ['', [Validators.required, Validators.pattern(SOLO_DIGITOS)]],
+    correo: ['', [Validators.required, Validators.pattern(FORMATO_CORREO)]],
+    telefono: ['', [Validators.required, Validators.pattern(FORMATO_TELEFONO)]],
+    clave: ['', [Validators.required, Validators.minLength(LARGO_MINIMO_CLAVE)]],
+  });
+
+  protected readonly intentado = signal(false);
+  protected readonly enviando = signal(false);
+  protected readonly confirmando = signal(false);
+  protected readonly registrado = signal(false);
+  protected datosConfirmacion: DatoConfirmacion[] = [];
+
+  protected readonly textoConfirmar = MSG.cuenta.confirmar;
+  protected readonly textoExito = MSG.cuenta.creada;
+
+  /** Texto de error de un campo (vacio si es valido). */
+  protected errorDe(campo: Campo): string {
+    const c = this.form.controls[campo];
+    if (c.hasError('required')) {
+      return {
+        nombre: MSG.cuenta.nombreObligatorio,
+        cedula: MSG.cuenta.cedulaObligatoria,
+        correo: MSG.cuenta.correoObligatorio,
+        telefono: MSG.cuenta.telefonoObligatorio,
+        clave: MSG.cuenta.claveObligatoria,
+      }[campo];
+    }
+    if (c.hasError('pattern') || c.hasError('minlength')) {
+      return {
+        nombre: '',
+        cedula: MSG.cuenta.cedulaFormato,
+        correo: MSG.cuenta.correoFormato,
+        telefono: MSG.cuenta.telefonoFormato,
+        clave: MSG.cuenta.claveCorta,
+      }[campo];
+    }
+    return '';
   }
 
-  passwordMatchValidator(g: FormGroup) {
-    const password = g.get('contrasena')?.value;
-    const confirm = g.get('confirmarContrasena')?.value;
-    return password === confirm ? null : { mismatch: true };
+  protected mostrarError(campo: Campo): boolean {
+    return this.intentado() && this.errorDe(campo) !== '';
   }
 
-  isInstitutionalEmail(email: string): boolean {
-    return email.endsWith('@ucab.edu.ve') || email.endsWith('@est.ucab.edu.ve');
+  /** Valida y, si todo esta bien, pide la confirmacion Si/No con el resumen (sin la contrasena). */
+  protected solicitarConfirmacion(): void {
+    if (this.enviando() || this.confirmando()) return;
+    this.intentado.set(true);
+    const invalidos = ORDEN.filter((c) => this.errorDe(c) !== '');
+    if (invalidos.length > 0) {
+      const detalle = invalidos.map((c) => `${ETIQUETAS[c]}: ${this.errorDe(c)}`);
+      const ref = this.dialog.open(DialogoMensajeComponent, opcionesDialogoMensaje({ titulo: MSG.comunes.datosInvalidos, detalle }));
+      ref.closed.subscribe(() => document.getElementById(invalidos[0])?.focus());
+      return;
+    }
+    const v = this.form.getRawValue();
+    this.datosConfirmacion = [
+      { etiqueta: 'Nombre', valor: v.nombre.trim() },
+      { etiqueta: 'Cédula', valor: v.cedula.trim() },
+      { etiqueta: 'Correo', valor: v.correo.trim() },
+      { etiqueta: 'Teléfono', valor: v.telefono.trim() },
+    ];
+    this.confirmando.set(true);
   }
 
-  onSubmit() {
-    if (this.registerForm.invalid) {
-      this.errorMessage = this.msg.comunes.datosInvalidos;
-      return;
-    }
+  /** «No» (o Esc, o clic afuera): se cierra el modal y el formulario conserva los datos. */
+  protected rechazarConfirmacion(): void {
+    this.confirmando.set(false);
+  }
 
-    const email = this.registerForm.get('correo')?.value;
-    if (!this.isInstitutionalEmail(email)) {
-      this.errorMessage = this.msg.cuenta.correoNoUcab;
-      return;
-    }
+  protected confirmarRegistro(): void {
+    this.confirmando.set(false);
+    this.enviando.set(true);
+    const v = this.form.getRawValue();
+    this.cuentas
+      .registrar({ nombre: v.nombre.trim(), cedula: v.cedula.trim(), correo: v.correo.trim(), telefono: v.telefono.trim(), clave: v.clave })
+      .subscribe({
+        next: () => {
+          this.enviando.set(false);
+          this.registrado.set(true);
+        },
+        error: (error: unknown) => {
+          this.enviando.set(false);
+          this.alFallar(error);
+        },
+      });
+  }
 
-    if (this.registerForm.errors?.['mismatch']) {
-      this.errorMessage = this.msg.cuenta.clavesDistintas;
-      return;
-    }
+  /** «Aceptar» en el mensaje de exito: la cuenta ya existe, se va a Iniciar sesion. */
+  protected aceptarExito(): void {
+    this.router.navigateByUrl('/iniciar-sesion');
+  }
 
-    // Modal de confirmación Sí/No (Requisito estricto de la guía de estilo)[cite: 10, 13]
-    const dialogRef = this.dialog.open(DialogoConfirmacionComponent, {
-      data: {
-        titulo: this.msg.cuenta.confirmar,
-        datos: [
-          { etiqueta: 'Nombre', valor: this.registerForm.value.nombreCompleto },
-          { etiqueta: 'Correo', valor: email },
-          { etiqueta: 'Cédula', valor: this.registerForm.value.cedula },
-          { etiqueta: 'Teléfono', valor: this.registerForm.value.telefono }
-        ]
-      },
-      width: '420px'
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (result === true) {
-        this.ejecutarRegistro();
+  private alFallar(error: unknown): void {
+    const http = error instanceof HttpErrorResponse ? error : null;
+    let titulo: string = MSG.comunes.errorServidor;
+    let detalle: string[] | undefined;
+    if (http?.status === 400) {
+      titulo = http.error?.mensaje ?? MSG.comunes.datosInvalidos;
+      const campos = http.error?.campos;
+      if (campos && typeof campos === 'object') {
+        const lista = Object.entries(campos).map(([campo, texto]) => `${ETIQUETAS[campo as Campo] ?? campo}: ${texto}`);
+        detalle = lista.length > 0 ? lista : undefined;
       }
-      // Si responde "No", el modal se cierra y los datos se conservan en el formulario[cite: 10, 13].
-    });
-  }
-
-  ejecutarRegistro() {
-    this.isLoading = true;
-    
-    // Llamada al servicio cumpliendo con el RNF de tiempo de respuesta (< 3 segundos)
-    this.cuentaService.registrar(this.registerForm.value).subscribe({
-      next: () => {
-        this.isLoading = false;
-        // Redirige al inicio de sesión pasando el mensaje de éxito (que termina en "Aceptar")[cite: 2, 10, 13]
-        this.router.navigate(['/iniciar-sesion'], { 
-          state: { message: this.msg.cuenta.creada } 
-        });
-      },
-      error: (err) => {
-        this.isLoading = false;
-        this.errorMessage = err.error?.message || this.msg.cuenta.correoRegistrado;
-      }
-    });
-  }
-
-  onCancel() {
-    // Cancelar descarta los datos y redirige al inicio de sesión[cite: 10, 13]
-    this.router.navigate(['/iniciar-sesion']);
+    }
+    this.dialog.open(DialogoMensajeComponent, opcionesDialogoMensaje({ titulo, detalle }));
   }
 }

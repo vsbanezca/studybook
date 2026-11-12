@@ -11,6 +11,11 @@ export const routes: Routes = [
     loadComponent: () => import('./cuenta/iniciar-sesion/iniciar-sesion.component').then((m) => m.IniciarSesionComponent),
   },
   {
+    path: 'registrarse',
+    canActivate: [sinSesionGuard],
+    loadComponent: () => import('./cuenta/registrarse/registrarse.component').then((m) => m.RegistrarseComponent),
+  },
+  {
     path: 'espacios',
     canActivate: [authGuard],
     loadComponent: () =>

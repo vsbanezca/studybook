@@ -1,57 +1,82 @@
-<div class="register-container">
-  <div class="sb-card">
-    <h1>Registrarse</h1>
-    <p>Usa tu correo institucional de la UCAB.</p>
+<main class="pantalla">
+  <aside class="panel sb-textura">
+    <sb-wordmark [size]="44" variante="claro" />
+  </aside>
 
-    <!-- Banner de error con botón Aceptar -->
-    <div *ngIf="errorMessage" class="sb-message sb-message-error" role="alert">
-      <span>{{ errorMessage }}</span>
-      <button class="sb-btn-accept" (click)="errorMessage = null">{{ msg.comunes.aceptar }}</button>
-    </div>
-
-    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
-      <div class="form-group">
-        <label>Nombre completo</label>
-        <input type="text" formControlName="nombreCompleto" placeholder="María Pérez" class="sb-input" />
+  <section class="formulario">
+    @if (registrado()) {
+      <div class="contenido">
+        <h1 class="sb-titulo-pantalla">Registrarse</h1>
+        <sb-message tipo="exito" [texto]="textoExito" (aceptado)="aceptarExito()" />
       </div>
+    } @else {
+      <form class="contenido" [formGroup]="form" (ngSubmit)="solicitarConfirmacion()" novalidate>
+        <h1 class="sb-titulo-pantalla">Registrarse</h1>
 
-      <div class="form-group">
-        <label>Cédula</label>
-        <input type="text" formControlName="cedula" placeholder="V-12345678" class="sb-input" />
-      </div>
+        <div class="sb-campo">
+          <label class="sb-etiqueta" for="nombre">Nombre</label>
+          <input id="nombre" class="sb-input" type="text" formControlName="nombre" autocomplete="name"
+            [attr.aria-invalid]="mostrarError('nombre') ? 'true' : null"
+            [attr.aria-describedby]="mostrarError('nombre') ? 'nombre-error' : null" />
+          @if (mostrarError('nombre')) {
+            <span class="sb-error-texto" id="nombre-error"><sb-icon nombre="circle-alert" />{{ errorDe('nombre') }}</span>
+          }
+        </div>
 
-      <div class="form-group">
-        <label>Correo institucional</label>
-        <input type="email" formControlName="correo" placeholder="nombre@ucab.edu.ve" class="sb-input" />
-      </div>
+        <div class="sb-campo">
+          <label class="sb-etiqueta" for="cedula">Cédula</label>
+          <input id="cedula" class="sb-input" type="text" inputmode="numeric" formControlName="cedula" autocomplete="off"
+            [attr.aria-invalid]="mostrarError('cedula') ? 'true' : null"
+            [attr.aria-describedby]="mostrarError('cedula') ? 'cedula-error' : null" />
+          @if (mostrarError('cedula')) {
+            <span class="sb-error-texto" id="cedula-error"><sb-icon nombre="circle-alert" />{{ errorDe('cedula') }}</span>
+          }
+        </div>
 
-      <div class="form-group">
-        <label>Teléfono</label>
-        <input type="text" formControlName="telefono" placeholder="0414-1234567" class="sb-input" />
-      </div>
+        <div class="sb-campo">
+          <label class="sb-etiqueta" for="correo">Correo institucional</label>
+          <input id="correo" class="sb-input" type="email" formControlName="correo" autocomplete="username"
+            [attr.aria-invalid]="mostrarError('correo') ? 'true' : null"
+            [attr.aria-describedby]="mostrarError('correo') ? 'correo-error' : null" />
+          @if (mostrarError('correo')) {
+            <span class="sb-error-texto" id="correo-error"><sb-icon nombre="circle-alert" />{{ errorDe('correo') }}</span>
+          }
+        </div>
 
-      <div class="form-group">
-        <label>Contraseña</label>
-        <input type="password" formControlName="contrasena" class="sb-input" />
-        <small class="sb-help-text">Mínimo 8 caracteres.</small>
-      </div>
+        <div class="sb-campo">
+          <label class="sb-etiqueta" for="telefono">Teléfono</label>
+          <input id="telefono" class="sb-input" type="tel" formControlName="telefono" autocomplete="tel"
+            [attr.aria-invalid]="mostrarError('telefono') ? 'true' : null"
+            [attr.aria-describedby]="mostrarError('telefono') ? 'telefono-error' : null" />
+          @if (mostrarError('telefono')) {
+            <span class="sb-error-texto" id="telefono-error"><sb-icon nombre="circle-alert" />{{ errorDe('telefono') }}</span>
+          }
+        </div>
 
-      <div class="form-group">
-        <label>Confirmar contraseña</label>
-        <input type="password" formControlName="confirmarContrasena" class="sb-input" />
-      </div>
+        <div class="sb-campo">
+          <label class="sb-etiqueta" for="clave">Contraseña</label>
+          <input id="clave" class="sb-input" type="password" formControlName="clave" autocomplete="new-password"
+            [attr.aria-invalid]="mostrarError('clave') ? 'true' : null"
+            [attr.aria-describedby]="mostrarError('clave') ? 'clave-error' : 'clave-ayuda'" />
+          @if (mostrarError('clave')) {
+            <span class="sb-error-texto" id="clave-error"><sb-icon nombre="circle-alert" />{{ errorDe('clave') }}</span>
+          }
+          <small class="sb-apoyo" id="clave-ayuda">Mínimo 8 caracteres.</small>
+        </div>
 
-      <div class="form-actions">
-        <button type="button" class="sb-btn-secondary" (click)="onCancel()">Cancelar</button>
-        <button type="submit" class="sb-btn-primary" [disabled]="isLoading">
-          <span *ngIf="isLoading" class="sb-spinner"></span>
+        <button type="submit" class="sb-btn sb-btn-primario sb-btn-bloque" [disabled]="enviando()"
+          [attr.aria-busy]="enviando() ? 'true' : null">
           Registrarse
         </button>
-      </div>
-    </form>
+        <a class="sb-enlace" routerLink="/iniciar-sesion">Iniciar sesión</a>
+      </form>
+    }
+  </section>
 
-    <div class="login-redirect">
-      <a routerLink="/iniciar-sesion">¿Ya tienes cuenta? Inicia sesión</a>
-    </div>
-  </div>
-</div>
+  <sb-confirm-dialog
+    [abierto]="confirmando()"
+    [titulo]="textoConfirmar"
+    [datos]="datosConfirmacion"
+    (confirmado)="confirmarRegistro()"
+    (rechazado)="rechazarConfirmacion()" />
+</main>
