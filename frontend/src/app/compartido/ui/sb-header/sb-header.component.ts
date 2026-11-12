@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, computed, inject, input, output, signal } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { SbIconComponent } from '../sb-icon/sb-icon.component';
 import { NombreIcono } from '../sb-icon/iconos';
@@ -21,6 +21,10 @@ const INICIAR_SESION: EnlaceNav = { etiqueta: 'Iniciar sesión', ruta: 'iniciar-
   selector: 'sb-header',
   imports: [RouterLink, RouterLinkActive, SbIconComponent, SbWordmarkComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    '(document:click)': 'alClicGlobal($event)',
+    '(document:keydown.escape)': 'alEscape()',
+  },
   template: `
     <header class="encabezado sb-textura">
       <div class="interior">
@@ -34,7 +38,24 @@ const INICIAR_SESION: EnlaceNav = { etiqueta: 'Iniciar sesión', ruta: 'iniciar-
           }
         </nav>
         @if (rol()) {
-          <span class="avatar" role="img" [attr.aria-label]="'Usuario ' + (nombre() || '')">{{ inicial() }}</span>
+          <div class="perfil">
+            <button
+              type="button"
+              class="avatar"
+              aria-haspopup="menu"
+              [attr.aria-expanded]="menuAbierto()"
+              [attr.aria-label]="'Menú de ' + (nombre() || 'usuario')"
+              (click)="alternarMenu()"
+            >{{ inicial() }}</button>
+            @if (menuAbierto()) {
+              <div class="menu" role="menu">
+                <p class="usuario">{{ nombre() }}</p>
+                <button type="button" class="opcion" role="menuitem" (click)="cerrarSesion()">
+                  <sb-icon nombre="log-out" />Cerrar sesión
+                </button>
+              </div>
+            }
+          </div>
         }
       </div>
     </header>
@@ -55,11 +76,29 @@ const INICIAR_SESION: EnlaceNav = { etiqueta: 'Iniciar sesión', ruta: 'iniciar-
     .enlace sb-icon { display: none; }
     .enlace:hover { background: var(--sb-primary-700); }
     .enlace.activo { background: var(--sb-bg); color: var(--sb-primary-600); }
+    .perfil { position: relative; margin-left: auto; }
     .avatar {
-      display: inline-flex; align-items: center; justify-content: center; margin-left: auto;
-      width: 36px; height: 36px; border-radius: var(--sb-radius-pill);
-      background: var(--sb-bg); color: var(--sb-primary-600); font-weight: 500;
+      display: inline-flex; align-items: center; justify-content: center; padding: 0; border: 0; cursor: pointer;
+      width: var(--sb-control-h); height: var(--sb-control-h); border-radius: var(--sb-radius-pill);
+      background: var(--sb-bg); color: var(--sb-primary-600); font: inherit; font-weight: 500;
     }
+    .avatar:hover { background: var(--sb-primary-100); }
+    .menu {
+      position: absolute; top: calc(100% + var(--sb-space-2)); right: 0; z-index: 20; min-width: 220px;
+      padding: var(--sb-space-2); background: var(--sb-bg); color: var(--sb-text);
+      border-radius: var(--sb-radius-card); box-shadow: var(--sb-shadow-modal);
+    }
+    .usuario {
+      margin: 0; padding: var(--sb-space-2) var(--sb-space-3) var(--sb-space-3);
+      border-bottom: 1px solid var(--sb-border); font-weight: 500; overflow-wrap: anywhere;
+    }
+    .opcion {
+      display: flex; align-items: center; gap: var(--sb-space-2); width: 100%; min-height: var(--sb-control-h);
+      margin-top: var(--sb-space-2); padding: 0 var(--sb-space-3); border: 0; border-radius: var(--sb-radius-control);
+      background: none; color: var(--sb-text); font: inherit; font-weight: 500; cursor: pointer; text-align: left;
+    }
+    .opcion:hover { background: var(--sb-surface); }
+    .opcion sb-icon { font-size: 18px; color: var(--sb-primary-600); }
     @media (max-width: 767.98px) {
       .interior { padding-inline: var(--sb-space-4); justify-content: space-between; }
       .nav {
@@ -79,11 +118,40 @@ const INICIAR_SESION: EnlaceNav = { etiqueta: 'Iniciar sesión', ruta: 'iniciar-
 })
 export class SbHeaderComponent {
   private readonly router = inject(Router);
+  private readonly host = inject(ElementRef<HTMLElement>);
+
+  /** Se emite al elegir «Cerrar sesión» en el menu del perfil; quien lo escucha cierra la sesion. */
+  readonly cerrarSesionSolicitado = output<void>();
+  protected readonly menuAbierto = signal(false);
 
   readonly rol = input<RolHeader>(null);
   readonly nombre = input<string>('');
   /** Si es true (por defecto) solo se muestran las secciones cuya ruta existe. */
   readonly soloRutasExistentes = input(true);
+
+  protected alternarMenu(): void {
+    this.menuAbierto.update((a) => !a);
+  }
+
+  protected cerrarSesion(): void {
+    this.menuAbierto.set(false);
+    this.cerrarSesionSolicitado.emit();
+  }
+
+  /** Clic fuera del encabezado: cierra el menu. */
+  protected alClicGlobal(ev: Event): void {
+    if (this.menuAbierto() && !this.host.nativeElement.contains(ev.target as Node)) {
+      this.menuAbierto.set(false);
+    }
+  }
+
+  /** Esc cierra el menu y devuelve el foco al boton del perfil. */
+  protected alEscape(): void {
+    if (this.menuAbierto()) {
+      this.menuAbierto.set(false);
+      this.host.nativeElement.querySelector('.avatar')?.focus();
+    }
+  }
 
   protected readonly inicial = computed(() => (this.nombre().trim().charAt(0) || '?').toUpperCase());
 

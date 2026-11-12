@@ -40,6 +40,13 @@ public class CuentaController {
 		return new SesionResponse(cuenta.nombre(), cuenta.correo(), cuenta.rol());
 	}
 
+	/** Cierra la sesion del usuario actual. Responde 204; sin sesion el interceptor ya responde 401. */
+	@PostMapping("/logout")
+	@ResponseStatus(HttpStatus.NO_CONTENT)
+	public void cerrarSesion(HttpServletRequest request) {
+		sesiones.cerrar(request);
+	}
+
 	/** Permite al cliente recuperar la sesion al recargar la pagina. */
 	@GetMapping("/sesion")
 	public SesionResponse sesionActual(HttpServletRequest request) {

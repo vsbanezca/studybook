@@ -16,6 +16,11 @@ export class CuentaService {
     return this.http.post<Sesion>('/api/auth/registro', datos);
   }
 
+  /** Cierra la sesion en el servidor (la invalida). Responde 204 sin cuerpo. */
+  cerrarSesion(): Observable<void> {
+    return this.http.post<void>('/api/auth/logout', {});
+  }
+
   /** Consulta si el navegador ya tiene una sesion abierta en el servidor. */
   sesionActual(): Observable<Sesion> {
     return this.http.get<Sesion>('/api/auth/sesion');
