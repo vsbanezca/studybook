@@ -15,6 +15,7 @@ import ve.edu.ucab.studybook.model.Rol;
  * - POST /api/auth/login y POST /api/auth/registro: publicos (no exigen sesion).
  * - /api/admin/**: solo ADMINISTRADOR (403 para MIEMBRO).
  * - /api/espacios/** y /api/equipamientos/**: consultar (GET) para cualquier sesion; crear, modificar o eliminar solo ADMINISTRADOR.
+ * - /api/reservas/**: solo MIEMBRO (403 para ADMINISTRADOR).
  * - resto de /api/**: cualquier sesion valida (401 si no hay).
  */
 @Component
@@ -34,6 +35,9 @@ public class AutorizacionInterceptor implements HandlerInterceptor {
 		}
 		SesionResponse sesion = sesiones.actual(request);
 		if (exigeAdministrador(ruta, request.getMethod()) && sesion.rol() != Rol.ADMINISTRADOR) {
+			throw new AccesoProhibidoException(GlobalExceptionHandler.SIN_PERMISO);
+		}
+		if (esRuta(ruta, "/api/reservas") && sesion.rol() != Rol.MIEMBRO) {
 			throw new AccesoProhibidoException(GlobalExceptionHandler.SIN_PERMISO);
 		}
 		return true;
