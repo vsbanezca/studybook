@@ -16,6 +16,7 @@ const FORMATO_CORREO = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const SOLO_DIGITOS = /^\d+$/;
 const FORMATO_TELEFONO = /^\+?\d{10,15}$/;
 const LARGO_MINIMO_CLAVE = 8; // SUPOSICION: minimo 8 caracteres
+const LARGO_MAXIMO_CLAVE = 72; // limite tecnico de BCrypt en el servidor
 
 type Campo = 'nombre' | 'cedula' | 'correo' | 'telefono' | 'clave';
 
@@ -47,7 +48,7 @@ export class RegistrarseComponent {
     cedula: ['', [Validators.required, Validators.pattern(SOLO_DIGITOS)]],
     correo: ['', [Validators.required, Validators.pattern(FORMATO_CORREO)]],
     telefono: ['', [Validators.required, Validators.pattern(FORMATO_TELEFONO)]],
-    clave: ['', [Validators.required, Validators.minLength(LARGO_MINIMO_CLAVE)]],
+    clave: ['', [Validators.required, Validators.minLength(LARGO_MINIMO_CLAVE), Validators.maxLength(LARGO_MAXIMO_CLAVE)]],
   });
 
   protected readonly intentado = signal(false);
@@ -70,6 +71,9 @@ export class RegistrarseComponent {
         telefono: MSG.cuenta.telefonoObligatorio,
         clave: MSG.cuenta.claveObligatoria,
       }[campo];
+    }
+    if (c.hasError('maxlength')) {
+      return MSG.cuenta.claveLarga;
     }
     if (c.hasError('pattern') || c.hasError('minlength')) {
       return {

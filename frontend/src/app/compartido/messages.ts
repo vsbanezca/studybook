@@ -26,6 +26,7 @@ export const MSG = {
     telefonoObligatorio: 'El teléfono es obligatorio',                            // PROPUESTA
     telefonoFormato:   'El teléfono debe tener de 10 a 15 dígitos, con + opcional al inicio', // PROPUESTA
     claveCorta:        'La contraseña debe tener al menos 8 caracteres',          // PROPUESTA
+    claveLarga:        'La contraseña debe tener como máximo 72 caracteres',      // PROPUESTA
   },
   espacio: {
     creado:            'El espacio se ha creado exitosamente',                    // PROPUESTA
