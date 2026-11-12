@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import ve.edu.ucab.studybook.control.comun.Telefono;
 import ve.edu.ucab.studybook.exceptions.NoAutorizadoException;
 import ve.edu.ucab.studybook.exceptions.ValidacionException;
 import ve.edu.ucab.studybook.model.Cuenta;
@@ -27,7 +28,7 @@ public class CuentaService {
 	static final String CORREO_FORMATO = "El correo debe tener formato de correo electrónico";
 	static final String CORREO_NO_INSTITUCIONAL = "Usa tu correo institucional";
 	static final String TELEFONO_OBLIGATORIO = "El teléfono es obligatorio";
-	static final String TELEFONO_FORMATO = "El teléfono debe tener de 10 a 15 dígitos, con + opcional al inicio";
+	static final String TELEFONO_FORMATO = Telefono.MENSAJE_FORMATO;
 	static final String CLAVE_OBLIGATORIA = "La contraseña es obligatoria";
 	static final String CLAVE_CORTA = "La contraseña debe tener al menos 8 caracteres";
 	static final String CLAVE_LARGA = "La contraseña debe tener como máximo 72 caracteres";
@@ -37,7 +38,6 @@ public class CuentaService {
 	// SUPOSICION: formatos y largos a confirmar con el equipo y la profesora.
 	private static final Pattern FORMATO_CORREO = Pattern.compile("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$");
 	private static final Pattern SOLO_DIGITOS = Pattern.compile("^\\d+$");
-	private static final Pattern FORMATO_TELEFONO = Pattern.compile("^\\+?\\d{10,15}$");
 	private static final int LARGO_MINIMO_CLAVE = 8;
 	/** BCrypt solo usa los primeros 72 bytes: se rechaza una clave mas larga en vez de truncarla en silencio. */
 	private static final int BYTES_MAXIMOS_CLAVE = 72;
@@ -83,8 +83,10 @@ public class CuentaService {
 		if (!esInstitucional(correo)) {
 			throw new ValidacionException(CORREO_NO_INSTITUCIONAL, "correo");
 		}
-		String telefono = obligatorio(peticion.telefono(), "telefono", TELEFONO_OBLIGATORIO);
-		if (!FORMATO_TELEFONO.matcher(telefono).matches()) {
+		obligatorio(peticion.telefono(), "telefono", TELEFONO_OBLIGATORIO);
+		// Se normaliza (sin espacios, guiones ni parentesis) antes de validar y se guarda el valor normalizado.
+		String telefono = Telefono.normalizar(peticion.telefono());
+		if (!Telefono.esValido(telefono)) {
 			throw new ValidacionException(TELEFONO_FORMATO, "telefono");
 		}
 		String clave = peticion.clave();

@@ -5,6 +5,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { DialogoMensajeComponent, opcionesDialogoMensaje } from '../../compartido/dialogo-mensaje/dialogo-mensaje.component';
 import { MSG } from '../../compartido/messages';
+import { normalizarTelefono, telefonoValidator } from '../../compartido/telefono';
 import { DatoConfirmacion, SbConfirmDialogComponent } from '../../compartido/ui/sb-confirm-dialog/sb-confirm-dialog.component';
 import { SbIconComponent } from '../../compartido/ui/sb-icon/sb-icon.component';
 import { SbMessageComponent } from '../../compartido/ui/sb-message/sb-message.component';
@@ -12,9 +13,8 @@ import { SbWordmarkComponent } from '../../compartido/ui/sb-wordmark/sb-wordmark
 import { CuentaService } from '../cuenta.service';
 
 const FORMATO_CORREO = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-// SUPOSICION: cedula solo con digitos y telefono de 10 a 15 digitos con + opcional (a confirmar con el equipo).
+// SUPOSICION: cedula solo con digitos (a confirmar con el equipo). El telefono usa la regla compartida de compartido/telefono.ts.
 const SOLO_DIGITOS = /^\d+$/;
-const FORMATO_TELEFONO = /^\+?\d{10,15}$/;
 const LARGO_MINIMO_CLAVE = 8; // SUPOSICION: minimo 8 caracteres
 const LARGO_MAXIMO_CLAVE = 72; // limite tecnico de BCrypt en el servidor
 
@@ -47,7 +47,7 @@ export class RegistrarseComponent {
     nombre: ['', Validators.required],
     cedula: ['', [Validators.required, Validators.pattern(SOLO_DIGITOS)]],
     correo: ['', [Validators.required, Validators.pattern(FORMATO_CORREO)]],
-    telefono: ['', [Validators.required, Validators.pattern(FORMATO_TELEFONO)]],
+    telefono: ['', [Validators.required, telefonoValidator]],
     clave: ['', [Validators.required, Validators.minLength(LARGO_MINIMO_CLAVE), Validators.maxLength(LARGO_MAXIMO_CLAVE)]],
   });
 
@@ -74,6 +74,9 @@ export class RegistrarseComponent {
     }
     if (c.hasError('maxlength')) {
       return MSG.cuenta.claveLarga;
+    }
+    if (c.hasError('telefono')) {
+      return MSG.cuenta.telefonoFormato;
     }
     if (c.hasError('pattern') || c.hasError('minlength')) {
       return {
@@ -107,7 +110,7 @@ export class RegistrarseComponent {
       { etiqueta: 'Nombre', valor: v.nombre.trim() },
       { etiqueta: 'Cédula', valor: v.cedula.trim() },
       { etiqueta: 'Correo', valor: v.correo.trim() },
-      { etiqueta: 'Teléfono', valor: v.telefono.trim() },
+      { etiqueta: 'Teléfono', valor: normalizarTelefono(v.telefono) },
     ];
     this.confirmando.set(true);
   }
@@ -122,7 +125,7 @@ export class RegistrarseComponent {
     this.enviando.set(true);
     const v = this.form.getRawValue();
     this.cuentas
-      .registrar({ nombre: v.nombre.trim(), cedula: v.cedula.trim(), correo: v.correo.trim(), telefono: v.telefono.trim(), clave: v.clave })
+      .registrar({ nombre: v.nombre.trim(), cedula: v.cedula.trim(), correo: v.correo.trim(), telefono: normalizarTelefono(v.telefono), clave: v.clave })
       .subscribe({
         next: () => {
           this.enviando.set(false);
