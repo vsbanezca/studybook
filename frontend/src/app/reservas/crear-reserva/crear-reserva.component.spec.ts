@@ -176,6 +176,25 @@ describe('CrearReservaComponent: validacion', () => {
     expect(campo('horaFin').value).toBe('15:30');
   });
 
+  it('la hora de inicio pasada de hoy la decide el servidor: el cliente envía y muestra su rechazo con el campo', async () => {
+    const { http, elegirSala, reservar, aceptarMensaje } = await abrir();
+    await elegirSala();
+    const hoyTexto = new Date().toISOString().slice(0, 10);
+    llenar({ fecha: hoyTexto, horaInicio: '00:01', horaFin: '00:30' });
+    await reservar();
+    // El cliente no replica la regla: la peticion llega al servidor.
+    http.expectOne('/api/reservas/validar').flush(
+      { mensaje: 'Datos proporcionados incorrectos', campos: { horaInicio: 'La hora de inicio no puede ser anterior a la hora actual' } },
+      { status: 400, statusText: 'Bad Request' },
+    );
+    await new Promise((r) => setTimeout(r));
+    expect(mensaje()?.textContent).toContain('Datos proporcionados incorrectos');
+    expect(mensaje()?.textContent).toContain('Hora de inicio: La hora de inicio no puede ser anterior a la hora actual');
+    await aceptarMensaje();
+    expect(campo('horaInicio').value).toBe('00:01');
+    expect(document.activeElement).toBe(campo('horaInicio'));
+  });
+
   it('muestra los errores de campo de un 400 genérico con la etiqueta del campo', async () => {
     const { http, elegirSala, reservar } = await abrir();
     await elegirSala();

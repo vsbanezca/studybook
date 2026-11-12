@@ -183,12 +183,6 @@ class ReservaTests {
 	}
 
 	@Test
-	void hoyEsUnaFechaValidaYLaHoraPasadaDelMismoDiaNoSeRechaza() throws Exception {
-		// SUPOSICION registrada: solo se rechaza la fecha pasada.
-		assertThat(validar(ana, json(espacioId, LocalDate.now(), "00:00", "00:30", 2)).getResponse().getStatus()).isEqualTo(200);
-	}
-
-	@Test
 	void unaFechaConFormatoInvalidoSeRechaza() throws Exception {
 		esperaRechazoDeCampo(json(espacioId, "15/11/2026", "14:00", "15:00", 2), "fecha", "La fecha no es válida");
 	}

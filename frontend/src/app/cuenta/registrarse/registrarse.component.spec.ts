@@ -101,6 +101,36 @@ describe('RegistrarseComponent', () => {
     http.expectNone('/api/auth/registro');
   });
 
+  it('normaliza el teléfono: acepta espacios, guiones y paréntesis y envía el valor limpio', async () => {
+    const casos: [string, string][] = [
+      ['0412-123 4567', '04121234567'],
+      ['+58 412 1234567', '+584121234567'],
+      ['(0412) 1234567', '04121234567'],
+    ];
+    for (const [escrito, limpio] of casos) {
+      llenar({ telefono: escrito });
+      await enviar();
+      expect(mensaje()).toBeNull();
+      expect(panelConfirmar()?.textContent).toContain(limpio);
+      botonesConfirmar()[1].click();
+      const req = http.expectOne('/api/auth/registro');
+      expect(req.request.body.telefono).toBe(limpio);
+      req.flush({}, { status: 400, statusText: 'x' });
+      await fixture.whenStable();
+      await aceptar();
+    }
+  });
+
+  it('rechaza un teléfono con letras, muy corto o muy largo', async () => {
+    for (const malo of ['0412-123a567', '0412 123', '0412 123 4567 8901 2345']) {
+      llenar({ telefono: malo });
+      await enviar();
+      expect(mensaje()?.textContent).toContain('El teléfono debe tener de 10 a 15 dígitos');
+      await aceptar();
+    }
+    http.expectNone('/api/auth/registro');
+  });
+
   it('con datos validos pide confirmar con un resumen que no incluye la contrasena', async () => {
     llenar();
     await enviar();

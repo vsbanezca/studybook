@@ -1,6 +1,6 @@
 package ve.edu.ucab.studybook.control.reserva;
 
-import java.time.LocalDate;
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
@@ -26,11 +26,14 @@ public class ReservaService {
 	private final ReservaRepository reservas;
 	private final EspacioRepository espacios;
 	private final ReservaValidador validador;
+	private final Clock reloj;
 
-	public ReservaService(ReservaRepository reservas, EspacioRepository espacios, ReservaValidador validador) {
+	public ReservaService(ReservaRepository reservas, EspacioRepository espacios, ReservaValidador validador,
+			Clock reloj) {
 		this.reservas = reservas;
 		this.espacios = espacios;
 		this.validador = validador;
+		this.reloj = reloj;
 	}
 
 	/** Aplica todas las reglas (datos, capacidad, disponibilidad) sin guardar nada. */
@@ -51,7 +54,7 @@ public class ReservaService {
 
 	/** Reservas del miembro: las proximas primero (de la mas cercana a la mas lejana) y despues las pasadas. */
 	public List<ReservaResponse> mias(String miembro) {
-		LocalDateTime ahora = LocalDateTime.now();
+		LocalDateTime ahora = LocalDateTime.now(reloj);
 		Comparator<Reserva> porMomento = Comparator.comparing((Reserva r) -> r.fecha().atTime(r.horaInicio()));
 		List<Reserva> propias = reservas.listarPorMiembro(miembro);
 		List<Reserva> proximas = propias.stream().filter(r -> !r.fecha().atTime(r.horaFin()).isBefore(ahora))
@@ -63,7 +66,7 @@ public class ReservaService {
 	}
 
 	private ReservaValidador.Datos revisar(ReservaRequest peticion) {
-		ReservaValidador.Datos d = validador.validar(peticion, LocalDate.now());
+		ReservaValidador.Datos d = validador.validar(peticion, LocalDateTime.now(reloj));
 		Espacio espacio = buscarEspacio(d.espacioId());
 		if (d.asistentes() > espacio.capacidad()) {
 			throw ValidacionException.literal(CAPACIDAD_EXCEDIDA, "asistentes");
