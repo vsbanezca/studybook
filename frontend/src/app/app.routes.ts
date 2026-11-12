@@ -39,6 +39,11 @@ export const routes: Routes = [
       import('./equipamiento/crear-equipamiento/crear-equipamiento.component').then((m) => m.CrearEquipamientoComponent),
   },
   {
+    path: 'reservas/nueva',
+    canActivate: [miembroGuard],
+    loadComponent: () => import('./reservas/crear-reserva/crear-reserva.component').then((m) => m.CrearReservaComponent),
+  },
+  {
     path: 'mis-reservas',
     canActivate: [miembroGuard],
     loadComponent: () =>

@@ -21,6 +21,7 @@
             <h2 class="nombre">{{ reserva.espacioNombre }}</h2>
             <sb-status-chip [estado]="estado(reserva)" />
           </div>
+          <p class="dato">Código {{ reserva.codigo }}</p>
           <p class="dato">{{ reserva.ubicacion }}</p>
           <p class="dato">{{ fecha(reserva) }}</p>
           <p class="dato">{{ horario(reserva) }}</p>

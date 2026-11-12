@@ -8,6 +8,8 @@ import { ReservaService } from './reserva.service';
 
 const RESERVA: Reserva = {
   id: 1,
+  codigo: 'RES-000001',
+  espacioId: 1,
   espacioNombre: 'Sala de estudio 1',
   ubicacion: 'Biblioteca',
   fecha: '2026-11-16',
@@ -49,6 +51,8 @@ describe('ConsultarMisReservasComponent', () => {
     await fixture.whenStable();
     expect(el.querySelectorAll('li.tarjeta').length).toBe(2);
     expect(el.textContent).toContain('Sala de estudio 1');
+    expect(el.textContent).toContain('Código RES-000001');
+    expect(el.textContent).toContain('Código RES-000001');
     expect(el.textContent).toContain('Activa');
     expect(el.textContent).toContain('Cancelada');
     expect(el.textContent).toContain('De 14:00 a 15:30');

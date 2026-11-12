@@ -90,6 +90,17 @@ describe('ConsultarEspaciosComponent', () => {
     expect(navegar).toHaveBeenCalledWith(['/espacios', 1, 'equipamiento']);
   });
 
+  it('«Reservar» abre Crear reserva con el espacio preseleccionado', async () => {
+    const { fixture, http, el } = montar(ConsultarEspaciosComponent, 'MIEMBRO');
+    const navegar = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    fixture.detectChanges();
+    http.expectOne('/api/espacios').flush([SALA]);
+    await fixture.whenStable();
+    const reservar = [...el.querySelectorAll<HTMLButtonElement>('sb-space-card button')].find((b) => b.textContent?.trim() === 'Reservar')!;
+    reservar.click();
+    expect(navegar).toHaveBeenCalledWith(['/reservas/nueva'], { queryParams: { espacioId: 1 } });
+  });
+
   it('el texto de apoyo del Administrador no habla de reservar', async () => {
     const { fixture, http, el } = montar(ConsultarEspaciosComponent, 'ADMINISTRADOR');
     fixture.detectChanges();

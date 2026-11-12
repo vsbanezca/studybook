@@ -32,3 +32,12 @@ export function formatearHora(valor: string): string {
   }
   return `${partes[1].padStart(2, '0')}:${partes[2]}`;
 }
+
+/**
+ * Igual que formatearFecha pero sin el dia de la semana: "15 de noviembre de 2026".
+ * Se usa en el resumen de confirmacion para que la fecha no sea ambigua.
+ */
+export function formatearFechaLarga(valor: string): string {
+  const completa = formatearFecha(valor);
+  return completa === valor ? valor : completa.replace(/^[^,]+,\s*/, '');
+}

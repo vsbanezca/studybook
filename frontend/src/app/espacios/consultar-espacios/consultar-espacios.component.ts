@@ -29,6 +29,11 @@ export class ConsultarEspaciosComponent implements OnInit {
     private router: Router
   ) {}
 
+  /** «Reservar» (solo Miembro) abre Crear reserva con este espacio ya elegido. */
+  reservar(espacio: Espacio): void {
+    this.router.navigate(['/reservas/nueva'], { queryParams: { espacioId: espacio.id } });
+  }
+
   /** «Ver equipamiento» abre la pantalla de equipamiento del espacio. */
   verEquipamiento(espacio: Espacio): void {
     this.router.navigate(['/espacios', espacio.id, 'equipamiento']);

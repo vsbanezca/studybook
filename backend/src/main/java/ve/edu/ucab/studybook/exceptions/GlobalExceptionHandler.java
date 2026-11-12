@@ -35,11 +35,21 @@ public class GlobalExceptionHandler {
 
 	@ExceptionHandler(ValidacionException.class)
 	public ResponseEntity<ErrorResponse> validacion(ValidacionException ex) {
+		if (ex.esMensajeLiteral()) {
+			return ResponseEntity.badRequest()
+					.body(new ErrorResponse(ex.getMessage(), Map.of(ex.getCampo(), ex.getMessage())));
+		}
 		if (ex.getCampo() == null) {
 			return ResponseEntity.badRequest().body(new ErrorResponse(ex.getMessage(), Map.of()));
 		}
 		return ResponseEntity.badRequest()
 				.body(new ErrorResponse(DATOS_INCORRECTOS, Map.of(ex.getCampo(), ex.getMessage())));
+	}
+
+	@ExceptionHandler(ConflictoException.class)
+	public ResponseEntity<ErrorResponse> conflicto(ConflictoException ex) {
+		Map<String, String> campos = ex.getCampo() == null ? Map.of() : Map.of(ex.getCampo(), ex.getMessage());
+		return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse(ex.getMessage(), campos));
 	}
 
 	@ExceptionHandler(NoAutorizadoException.class)
