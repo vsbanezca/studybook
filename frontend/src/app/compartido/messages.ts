@@ -23,6 +23,7 @@ export const MSG = {
     confirmar:         '¿Confirmas el registro?',                                 // PROPUESTA
     credencialesMal:   'Correo o contraseña incorrectos',                        // LITERAL
     correoObligatorio: 'El correo es obligatorio',                                // PROPUESTA
+    correoNoInstitucional: 'Usa tu correo institucional',                         // PROPUESTA (mismo texto del servidor)
     correoFormato:     'El correo debe tener formato de correo electrónico',                    // PROPUESTA
     claveObligatoria:  'La contraseña es obligatoria',                            // PROPUESTA
     nombreObligatorio: 'El nombre es obligatorio',                                // PROPUESTA

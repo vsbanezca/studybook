@@ -131,6 +131,63 @@ describe('RegistrarseComponent', () => {
     http.expectNone('/api/auth/registro');
   });
 
+  describe('dominio del correo al salir del campo', () => {
+    const salirDelCorreo = async () => {
+      campo('correo').dispatchEvent(new Event('blur'));
+      await fixture.whenStable();
+    };
+    const errorCorreo = () => el.querySelector('#correo-error')?.textContent?.trim() ?? '';
+
+    it('un dominio no institucional da error apenas sale del campo, sin enviar ni abrir el modal', async () => {
+      for (const malo of ['x@gmail.com', 'x@ucab.edu.ve.malo.com', 'x@xucab.edu.ve', 'x@sub.ucab.edu.ve', 'x@ucab.edu']) {
+        escribir('correo', malo);
+        await salirDelCorreo();
+        expect(errorCorreo(), malo).toContain('Usa tu correo institucional');
+        expect(campo('correo').getAttribute('aria-invalid')).toBe('true');
+      }
+      expect(mensaje()).toBeNull();
+      expect(panelConfirmar()).toBeNull();
+      http.expectNone('/api/auth/registro');
+    });
+
+    it('aceptar ucab.edu.ve y est.ucab.edu.ve, sin distinguir mayúsculas', async () => {
+      for (const bueno of ['ana@ucab.edu.ve', 'ana@est.ucab.edu.ve', 'ANA@UCAB.EDU.VE', 'Ana@Est.Ucab.Edu.Ve']) {
+        escribir('correo', bueno);
+        await salirDelCorreo();
+        expect(errorCorreo(), bueno).toBe('');
+      }
+    });
+
+    it('un correo vacío no marca error al salir del campo (solo al enviar)', async () => {
+      escribir('correo', '');
+      await salirDelCorreo();
+      expect(errorCorreo()).toBe('');
+    });
+
+    it('un correo sin formato muestra el error de formato al salir del campo', async () => {
+      escribir('correo', 'no-es-correo');
+      await salirDelCorreo();
+      expect(errorCorreo()).toContain('formato de correo electrónico');
+    });
+
+    it('el error desaparece al corregir el correo', async () => {
+      escribir('correo', 'x@gmail.com');
+      await salirDelCorreo();
+      expect(errorCorreo()).not.toBe('');
+      escribir('correo', 'x@ucab.edu.ve');
+      await fixture.whenStable();
+      expect(errorCorreo()).toBe('');
+    });
+
+    it('al presionar Registrarse con dominio malo el error sale antes del modal de confirmación', async () => {
+      llenar({ correo: 'x@gmail.com' });
+      await enviar();
+      expect(mensaje()?.textContent).toContain('Correo institucional: Usa tu correo institucional');
+      expect(panelConfirmar()).toBeNull();
+      http.expectNone('/api/auth/registro');
+    });
+  });
+
   it('con datos validos pide confirmar con un resumen que no incluye la contrasena', async () => {
     llenar();
     await enviar();

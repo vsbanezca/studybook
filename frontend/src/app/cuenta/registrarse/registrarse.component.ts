@@ -1,7 +1,7 @@
 import { Dialog } from '@angular/cdk/dialog';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { DialogoMensajeComponent, opcionesDialogoMensaje } from '../../compartido/dialogo-mensaje/dialogo-mensaje.component';
 import { MSG } from '../../compartido/messages';
@@ -13,6 +13,18 @@ import { SbWordmarkComponent } from '../../compartido/ui/sb-wordmark/sb-wordmark
 import { CuentaService } from '../cuenta.service';
 
 const FORMATO_CORREO = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+// SUPOSICION: mismos dominios que `studybook.registro.dominios` del backend (el servidor sigue siendo quien decide).
+// Si cambia la propiedad del servidor, hay que cambiar esta lista.
+const DOMINIOS_INSTITUCIONALES = ['ucab.edu.ve', 'est.ucab.edu.ve'];
+
+/** Con formato de correo valido, el dominio completo (despues de la ultima @) debe ser exactamente uno de la lista. */
+const dominioInstitucionalValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
+  const valor = ((control.value as string | null) ?? '').trim().toLowerCase();
+  if (!FORMATO_CORREO.test(valor)) return null; // vacio y formato los reportan sus propios validadores
+  const dominio = valor.substring(valor.lastIndexOf('@') + 1);
+  return DOMINIOS_INSTITUCIONALES.includes(dominio) ? null : { dominio: true };
+};
+
 // SUPOSICION: cedula solo con digitos (a confirmar con el equipo). El telefono usa la regla compartida de compartido/telefono.ts.
 const SOLO_DIGITOS = /^\d+$/;
 const LARGO_MINIMO_CLAVE = 8; // SUPOSICION: minimo 8 caracteres
@@ -46,7 +58,7 @@ export class RegistrarseComponent {
   protected readonly form = this.fb.group({
     nombre: ['', Validators.required],
     cedula: ['', [Validators.required, Validators.pattern(SOLO_DIGITOS)]],
-    correo: ['', [Validators.required, Validators.pattern(FORMATO_CORREO)]],
+    correo: ['', [Validators.required, Validators.pattern(FORMATO_CORREO), dominioInstitucionalValidator]],
     telefono: ['', [Validators.required, telefonoValidator]],
     clave: ['', [Validators.required, Validators.minLength(LARGO_MINIMO_CLAVE), Validators.maxLength(LARGO_MAXIMO_CLAVE)]],
   });
@@ -78,6 +90,9 @@ export class RegistrarseComponent {
     if (c.hasError('telefono')) {
       return MSG.cuenta.telefonoFormato;
     }
+    if (c.hasError('dominio')) {
+      return MSG.cuenta.correoNoInstitucional;
+    }
     if (c.hasError('pattern') || c.hasError('minlength')) {
       return {
         nombre: '',
@@ -90,8 +105,15 @@ export class RegistrarseComponent {
     return '';
   }
 
+  /**
+   * Tras intentar enviar se muestran todos los errores. Antes, el correo muestra su error en cuanto el usuario
+   * sale del campo (blur) con algo escrito: formato o dominio no institucional. Vacio no se marca hasta enviar.
+   */
   protected mostrarError(campo: Campo): boolean {
-    return this.intentado() && this.errorDe(campo) !== '';
+    if (this.errorDe(campo) === '') return false;
+    if (this.intentado()) return true;
+    const c = this.form.controls[campo];
+    return campo === 'correo' && c.touched && c.value.trim() !== '';
   }
 
   /** Valida y, si todo esta bien, pide la confirmacion Si/No con el resumen (sin la contrasena). */
