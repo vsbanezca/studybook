@@ -201,13 +201,58 @@ class RegistroTests {
 	}
 
 	@Test
-	void elTelefonoSoloAceptaDigitosConMasOpcionalDe10a15Caracteres() throws Exception {
+	void elTelefonoSeNormalizaYSeGuardaSinSeparadores() throws Exception {
+		String[][] casos = {
+				{"0412-123 4567", "04121234567"},
+				{"+58 412 1234567", "+584121234567"},
+				{"(0412) 1234567", "04121234567"},
+				{"  0412 - 123 - 4567 ", "04121234567"},
+				{"04121234567", "04121234567"},
+		};
+		for (String[] caso : casos) {
+			Datos d = validos().con("telefono", caso[0]);
+			assertThat(registrar(d.json()).getResponse().getStatus()).as(caso[0]).isEqualTo(201);
+			assertThat(repositorio.buscarPorCorreo(d.correo()).orElseThrow().telefono()).as(caso[0]).isEqualTo(caso[1]);
+		}
+	}
+
+	@Test
+	void elTelefonoInvalidoSeRechazaDespuesDeNormalizar() throws Exception {
 		String mensaje = "El teléfono debe tener de 10 a 15 dígitos";
+		esperaRechazo(validos().con("telefono", "0412-123a567"), "telefono", mensaje);
 		esperaRechazo(validos().con("telefono", "04141234"), "telefono", mensaje);
-		esperaRechazo(validos().con("telefono", "0414-1234567"), "telefono", mensaje);
-		esperaRechazo(validos().con("telefono", "04141234567890123"), "telefono", mensaje);
-		esperaRechazo(validos().con("telefono", "0414123456a"), "telefono", mensaje);
-		assertThat(registrar(validos().con("telefono", "04141234567").json()).getResponse().getStatus()).isEqualTo(201);
+		esperaRechazo(validos().con("telefono", "0414 123 4567 8901 2345"), "telefono", mensaje);
+		esperaRechazo(validos().con("telefono", "+-+"), "telefono", mensaje);
+		esperaRechazo(validos().con("telefono", "04141+234567"), "telefono", mensaje);
+		esperaRechazo(validos().con("telefono", "-  -"), "telefono", mensaje);
+	}
+
+	@Test
+	void ElDominioDelCorreoSeCompletaExactoSinDistinguirMayusculas() throws Exception {
+		String mensaje = "Usa tu correo institucional";
+		for (String falso : new String[] { "x@ucab.edu.ve.malo.com", "x@malo.com", "x@xucab.edu.ve", "x@sub.ucab.edu.ve",
+				"x@ucab.edu.vee", "x@ucab.edu", "x@malo.com.ucab.edu.ve" }) {
+			esperaRechazo(validos().con("correo", falso), "correo", mensaje);
+		}
+		Datos mayusculas = validos();
+		assertThat(registrar(mayusculas.con("correo", "X" + mayusculas.cedula() + "@UCAB.EDU.VE").json()).getResponse().getStatus())
+				.isEqualTo(201);
+		Datos estudiante = validos();
+		assertThat(registrar(estudiante.con("correo", "Y" + estudiante.cedula() + "@Est.Ucab.Edu.Ve").json()).getResponse().getStatus())
+				.isEqualTo(201);
+	}
+
+	@Test
+	void unCorreoConDosArrobasNoPasaElFormato() throws Exception {
+		esperaRechazo(validos().con("correo", "x@malo.com@ucab.edu.ve"), "correo", "formato de correo electrónico");
+	}
+
+	@Test
+	void laCedulaNoAceptaVacioNiLetras() throws Exception {
+		esperaRechazo(validos().con("cedula", ""), "cedula", "La cédula es obligatoria");
+		esperaRechazo(validos().con("cedula", "   "), "cedula", "La cédula es obligatoria");
+		esperaRechazo(validos().con("cedula", "12345a78"), "cedula", "La cédula debe tener solo números");
+		esperaRechazo(validos().con("cedula", "V12345678"), "cedula", "La cédula debe tener solo números");
 	}
 
 	@Test
