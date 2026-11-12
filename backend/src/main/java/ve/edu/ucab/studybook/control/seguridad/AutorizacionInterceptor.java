@@ -12,9 +12,9 @@ import ve.edu.ucab.studybook.model.Rol;
 
 /**
  * Autorizacion por rol en el servidor. Es la que decide, aunque el cliente oculte opciones.
- * - /api/auth/login: publico.
+ * - POST /api/auth/login y POST /api/auth/registro: publicos (no exigen sesion).
  * - /api/admin/**: solo ADMINISTRADOR (403 para MIEMBRO).
- * - /api/espacios/**: consultar (GET) para cualquier sesion; crear, modificar o eliminar solo ADMINISTRADOR.
+ * - /api/espacios/** y /api/equipamientos/**: consultar (GET) para cualquier sesion; crear, modificar o eliminar solo ADMINISTRADOR.
  * - resto de /api/**: cualquier sesion valida (401 si no hay).
  */
 @Component
@@ -29,7 +29,7 @@ public class AutorizacionInterceptor implements HandlerInterceptor {
 	@Override
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
 		String ruta = request.getRequestURI();
-		if (ruta.equals("/api/auth/login") || "OPTIONS".equals(request.getMethod())) {
+		if (esPublica(ruta, request.getMethod())) {
 			return true;
 		}
 		SesionResponse sesion = sesiones.actual(request);
@@ -39,12 +39,25 @@ public class AutorizacionInterceptor implements HandlerInterceptor {
 		return true;
 	}
 
+	/** Rutas que se pueden usar sin sesion: iniciar sesion y registrarse (solo POST). */
+	private static boolean esPublica(String ruta, String metodo) {
+		if ("OPTIONS".equals(metodo)) {
+			return true;
+		}
+		boolean esPost = "POST".equals(metodo);
+		return esPost && (ruta.equals("/api/auth/login") || ruta.equals("/api/auth/registro"));
+	}
+
 	private static boolean exigeAdministrador(String ruta, String metodo) {
 		if (ruta.startsWith("/api/admin/")) {
 			return true;
 		}
-		boolean esEspacios = ruta.equals("/api/espacios") || ruta.startsWith("/api/espacios/");
+		boolean esRecursoDeAdministracion = esRuta(ruta, "/api/espacios") || esRuta(ruta, "/api/equipamientos");
 		boolean soloLectura = "GET".equals(metodo) || "HEAD".equals(metodo);
-		return esEspacios && !soloLectura;
+		return esRecursoDeAdministracion && !soloLectura;
+	}
+
+	private static boolean esRuta(String ruta, String base) {
+		return ruta.equals(base) || ruta.startsWith(base + "/");
 	}
 }

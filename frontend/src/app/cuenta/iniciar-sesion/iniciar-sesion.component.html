@@ -41,17 +41,15 @@
         }
       </div>
 
-      <div class="acciones">
-        <button type="button" class="sb-btn sb-btn-secundario" (click)="cancelar()">Cancelar</button>
-        <button
-          type="submit"
-          class="sb-btn sb-btn-primario"
-          [disabled]="enviando()"
-          [attr.aria-busy]="enviando() ? 'true' : null"
-        >
-          Iniciar sesión
-        </button>
-      </div>
+      <button
+        type="submit"
+        class="sb-btn sb-btn-primario sb-btn-bloque"
+        [disabled]="enviando()"
+        [attr.aria-busy]="enviando() ? 'true' : null"
+      >
+        Iniciar sesión
+      </button>
+      <a class="sb-enlace" routerLink="/registrarse">Registrarse</a>
     </form>
   </section>
 </main>

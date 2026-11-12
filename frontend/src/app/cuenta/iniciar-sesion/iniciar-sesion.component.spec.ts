@@ -47,9 +47,20 @@ describe('IniciarSesionComponent', () => {
     expect(el.querySelector('h1')?.textContent).toContain('Iniciar sesión');
   });
 
-  it('no ofrece recuperar la contrasena ni registrarse', () => {
-    expect(el.textContent).not.toMatch(/olvid|recuper|registr/i);
-    expect(el.querySelectorAll('a').length).toBe(0);
+  it('no ofrece recuperar la contrasena y enlaza a Registrarse', () => {
+    expect(el.textContent).not.toMatch(/olvid|recuper/i);
+    const enlaces = el.querySelectorAll('a');
+    expect(enlaces.length).toBe(1);
+    expect(enlaces[0].textContent?.trim()).toBe('Registrarse');
+    expect(enlaces[0].getAttribute('href')).toBe('/registrarse');
+  });
+
+  it('tiene un solo boton, Iniciar sesión, sin Cancelar', () => {
+    const botones = el.querySelectorAll('button');
+    expect(botones.length).toBe(1);
+    expect(botones[0].textContent?.trim()).toBe('Iniciar sesión');
+    expect(botones[0].type).toBe('submit');
+    expect(el.textContent).not.toContain('Cancelar');
   });
 
   it('con datos invalidos muestra el error con Aceptar y no llama al servidor', async () => {
@@ -92,14 +103,14 @@ describe('IniciarSesionComponent', () => {
     expect(campo('clave').value).toBe('');
   });
 
-  it('Cancelar limpia los campos y no inicia sesion', () => {
+  it('Enter dentro de un campo envia el formulario', () => {
     escribir('correo', 'ana@ucab.edu.ve');
     escribir('clave', 'secreta');
-    el.querySelector<HTMLButtonElement>('.sb-btn-secundario')!.click();
-    expect(campo('correo').value).toBe('');
-    expect(campo('clave').value).toBe('');
-    expect(TestBed.inject(SesionService).autenticado()).toBe(false);
-    http.expectNone('/api/auth/login');
+    // El formulario se envia con Enter porque el unico boton es de tipo submit.
+    const submit = el.querySelector<HTMLButtonElement>('button[type="submit"]')!;
+    expect(submit.form).toBe(el.querySelector('form'));
+    enviar();
+    http.expectOne('/api/auth/login');
   });
 
   it('con credenciales correctas inicia la sesion y va a Consultar espacios', async () => {

@@ -1,0 +1,32 @@
+<main class="contenedor-pantalla">
+  <a class="sb-enlace" routerLink="/espacios">Volver a espacios</a>
+
+  @if (espacio(); as e) {
+    <div class="encabezado">
+      <div>
+        <h1 class="sb-titulo-pantalla">Equipamiento</h1>
+        <p class="texto-apoyo sb-apoyo">{{ e.nombre }}, {{ e.ubicacion }}, piso {{ e.piso }}</p>
+      </div>
+      @if (esAdministrador) {
+        <a class="sb-btn sb-btn-primario" [routerLink]="rutaAgregar()">Agregar equipamiento</a>
+      }
+    </div>
+
+    @if (cargado()) {
+      @if (lista().length > 0) {
+        <ul class="lista">
+          @for (item of lista(); track item.id) {
+            <li class="tarjeta">
+              <h2 class="nombre">{{ item.nombre }}</h2>
+              <p class="dato">{{ item.categoria }}</p>
+              <p class="dato">Estado: {{ item.estado }}</p>
+              <p class="descripcion">{{ item.descripcion }}</p>
+            </li>
+          }
+        </ul>
+      } @else {
+        <sb-empty-state icono="box" [titulo]="textoVacio" [texto]="textoVacioApoyo" />
+      }
+    }
+  }
+</main>

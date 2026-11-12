@@ -1,6 +1,6 @@
 import { Dialog } from '@angular/cdk/dialog';
 import { ChangeDetectionStrategy, Component, OnInit, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { DialogoMensajeComponent, opcionesDialogoMensaje } from '../../compartido/dialogo-mensaje/dialogo-mensaje.component';
 import { MSG } from '../../compartido/messages';
 import { SbEmptyStateComponent } from '../../compartido/ui/sb-empty-state/sb-empty-state.component';
@@ -25,8 +25,14 @@ export class ConsultarEspaciosComponent implements OnInit {
   constructor(
     private espacioService: EspacioService,
     private sesionService: SesionService,
-    private dialog: Dialog
+    private dialog: Dialog,
+    private router: Router
   ) {}
+
+  /** «Ver equipamiento» abre la pantalla de equipamiento del espacio. */
+  verEquipamiento(espacio: Espacio): void {
+    this.router.navigate(['/espacios', espacio.id, 'equipamiento']);
+  }
 
   ngOnInit(): void {
     this.esAdministrador = this.sesionService.esAdmin();

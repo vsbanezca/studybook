@@ -3,11 +3,17 @@
 
   @if (cargado()) {
     @if (espacios().length > 0) {
-      <p class="texto-apoyo sb-apoyo">Elige un espacio para reservarlo o ver su equipamiento.</p>
+      <p class="texto-apoyo sb-apoyo">
+        {{ esAdministrador ? 'Elige un espacio para ver su equipamiento.' : 'Elige un espacio para reservarlo o ver su equipamiento.' }}
+      </p>
 
       <div class="grid-espacios">
         @for (espacio of espacios(); track espacio.id) {
-          <sb-space-card [espacio]="espacio" modo="ver" />
+          <!-- «Reservar» solo se ofrece al Miembro; su logica la conecta la historia Crear reserva. -->
+          <sb-space-card
+            [espacio]="espacio"
+            [modo]="esAdministrador ? 'ver' : 'reservar'"
+            (verEquipamiento)="verEquipamiento($event)" />
         }
       </div>
     } @else {

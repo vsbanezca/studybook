@@ -7,11 +7,10 @@
   padding: var(--sb-space-8); background: var(--sb-bg);
 }
 .contenido { display: grid; gap: var(--sb-space-6); width: 100%; max-width: 400px; }
-.acciones { display: flex; justify-content: flex-end; gap: var(--sb-space-2); }
+.sb-enlace { justify-self: center; }
 
 @media (max-width: 767.98px) {
   .pantalla { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
   .panel { padding: var(--sb-space-6) var(--sb-space-4); }
   .formulario { align-items: flex-start; padding: var(--sb-space-8) var(--sb-space-4); }
-  .acciones .sb-btn { flex: 1; padding-inline: var(--sb-space-2); }
 }

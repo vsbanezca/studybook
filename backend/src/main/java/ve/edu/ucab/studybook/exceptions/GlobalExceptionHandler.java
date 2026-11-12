@@ -47,6 +47,11 @@ public class GlobalExceptionHandler {
 		return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponse(ex.getMessage(), Map.of()));
 	}
 
+	@ExceptionHandler(NoEncontradoException.class)
+	public ResponseEntity<ErrorResponse> noEncontrado(NoEncontradoException ex) {
+		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(ex.getMessage(), Map.of()));
+	}
+
 	@ExceptionHandler(AccesoProhibidoException.class)
 	public ResponseEntity<ErrorResponse> prohibido(AccesoProhibidoException ex) {
 		return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ErrorResponse(ex.getMessage(), Map.of()));

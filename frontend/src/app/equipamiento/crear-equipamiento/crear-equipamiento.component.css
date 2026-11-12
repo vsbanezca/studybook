@@ -1,0 +1,26 @@
+:host { display: block; }
+
+.contenedor-pantalla {
+  max-width: var(--sb-container);
+  margin: 0 auto;
+  padding: var(--sb-space-8);
+}
+
+.texto-apoyo { margin: var(--sb-space-2) 0 var(--sb-space-6); }
+
+form { max-width: 420px; margin-top: var(--sb-space-6); }
+.grupo-campo { margin-bottom: var(--sb-space-4); }
+
+textarea.sb-input {
+  padding-block: var(--sb-space-3);
+  resize: vertical;
+}
+
+.acciones-formulario {
+  display: flex; justify-content: flex-end; gap: var(--sb-space-4); margin-top: var(--sb-space-8);
+}
+
+@media (max-width: 767.98px) {
+  .contenedor-pantalla { padding: var(--sb-space-4); }
+  .acciones-formulario .sb-btn { flex: 1; }
+}
