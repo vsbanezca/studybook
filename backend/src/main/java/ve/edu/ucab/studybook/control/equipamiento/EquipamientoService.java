@@ -6,15 +6,17 @@ import java.util.Optional;
 import org.springframework.stereotype.Service;
 
 import ve.edu.ucab.studybook.control.espacio.EspacioRepository;
+import ve.edu.ucab.studybook.exceptions.NoEncontradoException;
 import ve.edu.ucab.studybook.exceptions.ValidacionException;
 import ve.edu.ucab.studybook.model.Equipamiento;
 
 @Service
 public class EquipamientoService {
 
+    // Textos de frontend/src/app/compartido/messages.ts
     static final String CAMPO_OBLIGATORIO = "Este campo es obligatorio.";
-    static final String ESPACIO_NO_EXISTE = "El espacio indicado no existe o fue eliminado.";
-    static final String EQUIPAMIENTO_REPETIDO = "Ya existe un equipamiento con ese nombre en este espacio.";
+    static final String ESPACIO_NO_EXISTE = "El espacio indicado no existe";
+    static final String EQUIPAMIENTO_REPETIDO = "Este espacio ya tiene ese equipamiento";
 
     private final EquipamientoRepository equipamientoRepository;
     private final EspacioRepository espacioRepository;
@@ -31,14 +33,17 @@ public class EquipamientoService {
         if (espacioId == null) {
             throw new ValidacionException(CAMPO_OBLIGATORIO, "espacioId");
         }
+        if (!existeEspacio(espacioId)) {
+            throw new NoEncontradoException(ESPACIO_NO_EXISTE);
+        }
         return equipamientoRepository.listarPorEspacio(espacioId);
     }
 
     public Equipamiento crearEquipamiento(EquipamientoRequest request) {
         // 1. Validar campos obligatorios
         String nombre = validarObligatorio(request.getNombre(), "nombre");
-        String categoria = validarObligatorio(request.getCategoria(), "categoría");
-        String descripcion = validarObligatorio(request.getDescripcion(), "descripción");
+        String categoria = validarObligatorio(request.getCategoria(), "categoria");
+        String descripcion = validarObligatorio(request.getDescripcion(), "descripcion");
         String estado = validarObligatorio(request.getEstado(), "estado");
         
         if (request.getEspacioId() == null) {
@@ -46,10 +51,7 @@ public class EquipamientoService {
         }
 
         // 2. Validar que el espacio exista usando el metodo real: listar()
-        boolean espacioExiste = espacioRepository.listar().stream()
-                .anyMatch(e -> e.id().equals(request.getEspacioId())); 
-
-        if (!espacioExiste) {
+        if (!existeEspacio(request.getEspacioId())) {
             throw new ValidacionException(ESPACIO_NO_EXISTE, "espacioId");
         }
 
@@ -71,6 +73,10 @@ public class EquipamientoService {
         }
         
         return resultado.get();
+    }
+
+    private boolean existeEspacio(Long espacioId) {
+        return espacioRepository.listar().stream().anyMatch(e -> e.id().equals(espacioId));
     }
 
     private static String validarObligatorio(String valor, String campo) {
