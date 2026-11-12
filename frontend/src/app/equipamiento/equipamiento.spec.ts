@@ -13,7 +13,7 @@ import { EquipamientoService } from './equipamiento.service';
 
 const SALA: Espacio = { id: 1, nombre: 'Sala de estudio 1', ubicacion: 'Biblioteca', piso: '2', capacidad: 6 };
 const PROYECTOR: Equipamiento = {
-  id: 1, nombre: 'Proyector', categoria: 'Audiovisual', descripcion: 'Proyector HDMI', estado: 'Disponible', espacioId: 1,
+  id: 1, nombre: 'Proyector', categoria: 'Audiovisual', descripcion: 'Proyector HDMI', estado: 'Disponible', cantidad: 3, espacioId: 1,
 };
 
 function montar<T>(tipo: Type<T>, rol: 'MIEMBRO' | 'ADMINISTRADOR', id = '1') {
@@ -71,6 +71,7 @@ describe('ConsultarEquipamientoComponent', () => {
     expect(el.textContent).toContain('Proyector');
     expect(el.textContent).toContain('Audiovisual');
     expect(el.textContent).toContain('Disponible');
+    expect(el.textContent).toContain('Cantidad: 3');
     expect(el.textContent).toContain('Proyector HDMI');
   });
 
@@ -142,6 +143,7 @@ describe('CrearEquipamientoComponent', () => {
     escribir('nombre', 'Proyector');
     escribir('categoria', 'Audiovisual');
     escribir('estado', 'Disponible');
+    escribir('cantidad', '3');
     escribir('descripcion', 'Proyector HDMI');
   };
 
@@ -177,6 +179,29 @@ describe('CrearEquipamientoComponent', () => {
     http.expectNone('/api/equipamientos');
   });
 
+  it('rechaza una cantidad de 0, negativa, decimal o vacia (no numerica) con Aceptar y sin llamar al servidor', async () => {
+    const casos: [string, string][] = [
+      ['0', 'La cantidad debe ser un número entero mayor o igual a 1'],
+      ['-2', 'La cantidad debe ser un número entero mayor o igual a 1'],
+      ['2.5', 'La cantidad debe ser un número entero mayor o igual a 1'],
+      ['abc', 'Cantidad: Este campo es obligatorio.'],
+      ['', 'Cantidad: Este campo es obligatorio.'],
+    ];
+    const { fixture, http, el } = await abrir();
+    for (const [valor, texto] of casos) {
+      llenar();
+      escribir('cantidad', valor);
+      await enviar(fixture, el);
+      expect(mensaje()?.textContent, valor).toContain(texto);
+      expect(mensaje()?.querySelector('button')?.textContent).toContain('Aceptar');
+      mensaje()!.querySelector<HTMLButtonElement>('button')!.click();
+      await fixture.whenStable();
+      expect(campo('nombre').value).toBe('Proyector');
+    }
+    http.expectNone('/api/equipamientos');
+    expect(panelConfirmar()).toBeNull();
+  });
+
   it('pide confirmacion Si o No con el resumen, y No conserva los datos', async () => {
     const { fixture, http, el } = await abrir();
     llenar();
@@ -185,6 +210,7 @@ describe('CrearEquipamientoComponent', () => {
     expect(texto).toContain('¿Confirmas el registro del equipamiento?');
     expect(texto).toContain('Sala de estudio 1');
     expect(texto).toContain('Proyector');
+    expect(texto).toContain('Cantidad');
     expect(botonesConfirmar().map((b) => b.textContent?.trim())).toEqual(['No', 'Sí']);
     botonesConfirmar()[0].click();
     await fixture.whenStable();
@@ -203,7 +229,7 @@ describe('CrearEquipamientoComponent', () => {
     const req = http.expectOne('/api/equipamientos');
     expect(req.request.method).toBe('POST');
     expect(req.request.body).toEqual({
-      nombre: 'Proyector', categoria: 'Audiovisual', estado: 'Disponible', descripcion: 'Proyector HDMI', espacioId: 1,
+      nombre: 'Proyector', categoria: 'Audiovisual', estado: 'Disponible', cantidad: 3, descripcion: 'Proyector HDMI', espacioId: 1,
     });
     req.flush(PROYECTOR);
     await fixture.whenStable();
@@ -219,11 +245,11 @@ describe('CrearEquipamientoComponent', () => {
     await enviar(fixture, el);
     botonesConfirmar()[1].click();
     http.expectOne('/api/equipamientos').flush(
-      { mensaje: 'Este espacio ya tiene ese equipamiento', campos: {} },
+      { mensaje: 'Ya existe ese equipamiento en este espacio', campos: {} },
       { status: 400, statusText: 'Bad Request' },
     );
     await fixture.whenStable();
-    expect(mensaje()?.textContent).toContain('Este espacio ya tiene ese equipamiento');
+    expect(mensaje()?.textContent).toContain('Ya existe ese equipamiento en este espacio');
     mensaje()!.querySelector<HTMLButtonElement>('button')!.click();
     await fixture.whenStable();
     expect(mensaje()).toBeNull();

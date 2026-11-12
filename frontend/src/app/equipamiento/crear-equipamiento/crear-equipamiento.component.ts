@@ -12,7 +12,7 @@ import { Espacio } from '../../espacios/espacio.model';
 import { EspacioService } from '../../espacios/espacio.service';
 import { EquipamientoService } from '../equipamiento.service';
 
-type Campo = 'nombre' | 'categoria' | 'estado' | 'descripcion';
+type Campo = 'nombre' | 'categoria' | 'estado' | 'cantidad' | 'descripcion';
 
 interface ErrorCampo {
   campo: Campo;
@@ -24,6 +24,7 @@ const ETIQUETAS: Record<Campo, string> = {
   nombre: 'Nombre',
   categoria: 'Categoría',
   estado: 'Estado',
+  cantidad: 'Cantidad',
   descripcion: 'Descripción',
 };
 
@@ -44,7 +45,7 @@ export class CrearEquipamientoComponent implements OnInit {
   protected espacioId = 0;
   protected readonly espacio = signal<Espacio | null>(null);
 
-  protected readonly nuevo = { nombre: '', categoria: '', estado: '', descripcion: '' };
+  protected readonly nuevo = { nombre: '', categoria: '', estado: '', cantidad: 1 as number | null, descripcion: '' };
 
   protected readonly intentado = signal(false);
   protected readonly enviando = signal(false);
@@ -73,11 +74,20 @@ export class CrearEquipamientoComponent implements OnInit {
   /** Campos con error, en el orden del formulario. */
   protected errores(): ErrorCampo[] {
     const lista: ErrorCampo[] = [];
-    (Object.keys(ETIQUETAS) as Campo[]).forEach((campo) => {
+    (['nombre', 'categoria', 'estado', 'descripcion'] as const).forEach((campo) => {
       if (!this.nuevo[campo].trim()) {
         lista.push({ campo, etiqueta: ETIQUETAS[campo], texto: MSG.comunes.campoObligatorio });
       }
     });
+    const cantidad = this.nuevo.cantidad;
+    if (cantidad === null || cantidad === undefined || (cantidad as unknown) === '') {
+      lista.push({ campo: 'cantidad', etiqueta: ETIQUETAS.cantidad, texto: MSG.comunes.campoObligatorio });
+    } else if (!Number.isInteger(cantidad) || cantidad < 1) {
+      lista.push({ campo: 'cantidad', etiqueta: ETIQUETAS.cantidad, texto: MSG.equipamiento.cantidadInvalida });
+    }
+    // Los errores siguen el orden del formulario.
+    const orden: Campo[] = ['nombre', 'categoria', 'estado', 'cantidad', 'descripcion'];
+    lista.sort((a, b) => orden.indexOf(a.campo) - orden.indexOf(b.campo));
     return lista;
   }
 
@@ -100,6 +110,7 @@ export class CrearEquipamientoComponent implements OnInit {
       { etiqueta: 'Nombre', valor: this.nuevo.nombre.trim() },
       { etiqueta: 'Categoría', valor: this.nuevo.categoria.trim() },
       { etiqueta: 'Estado', valor: this.nuevo.estado.trim() },
+      { etiqueta: 'Cantidad', valor: String(this.nuevo.cantidad) },
     ];
     this.confirmando.set(true);
   }
@@ -117,6 +128,7 @@ export class CrearEquipamientoComponent implements OnInit {
         nombre: this.nuevo.nombre.trim(),
         categoria: this.nuevo.categoria.trim(),
         estado: this.nuevo.estado.trim(),
+        cantidad: Number(this.nuevo.cantidad),
         descripcion: this.nuevo.descripcion.trim(),
         espacioId: this.espacioId,
       })

@@ -39,6 +39,16 @@
       </div>
 
       <div class="grupo-campo sb-campo">
+        <label for="cantidad" class="sb-etiqueta">Cantidad</label>
+        <input type="number" id="cantidad" name="cantidad" min="1" step="1" [(ngModel)]="nuevo.cantidad" class="sb-input"
+          [attr.aria-invalid]="errorDe('cantidad') ? 'true' : null"
+          [attr.aria-describedby]="errorDe('cantidad') ? 'cantidad-error' : null">
+        @if (errorDe('cantidad')) {
+          <span class="sb-error-texto" id="cantidad-error"><sb-icon nombre="circle-alert" />{{ errorDe('cantidad') }}</span>
+        }
+      </div>
+
+      <div class="grupo-campo sb-campo">
         <label for="descripcion" class="sb-etiqueta">Descripción</label>
         <textarea id="descripcion" name="descripcion" rows="3" [(ngModel)]="nuevo.descripcion" class="sb-input"
           [attr.aria-invalid]="errorDe('descripcion') ? 'true' : null"

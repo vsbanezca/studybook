@@ -42,7 +42,8 @@ export const MSG = {
   },
   equipamiento: {
     creado:            'El equipamiento se ha creado exitosamente',               // PROPUESTA
-    repetido:          'Este espacio ya tiene ese equipamiento',                  // PROPUESTA
+    repetido:          'Ya existe ese equipamiento en este espacio',              // SUPOSICION (propuesto, a confirmar)
+    cantidadInvalida:  'La cantidad debe ser un número entero mayor o igual a 1', // PROPUESTA
     confirmar:         '¿Confirmas el registro del equipamiento?',                // PROPUESTA
     vacio:             'Este espacio no tiene equipamiento registrado',           // PROPUESTA
     vacioAdmin:        'Agrega el primer equipamiento para este espacio.',        // PROPUESTA
