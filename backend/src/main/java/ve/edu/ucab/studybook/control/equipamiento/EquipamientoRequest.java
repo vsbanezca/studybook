@@ -5,6 +5,8 @@ public class EquipamientoRequest {
     private String categoria;
     private String descripcion;
     private String estado;
+    // Texto para poder indicar el campo cuando no es un numero entero.
+    private String cantidad;
     private Long espacioId;
 
     //Getters y Setters 
@@ -19,6 +21,9 @@ public class EquipamientoRequest {
 
     public String getEstado() { return estado; }
     public void setEstado(String estado) { this.estado = estado; }
+
+    public String getCantidad() { return cantidad; }
+    public void setCantidad(String cantidad) { this.cantidad = cantidad; }
 
     public Long getEspacioId() { return espacioId; }
     public void setEspacioId(Long espacioId) { this.espacioId = espacioId; }

@@ -37,10 +37,15 @@ public class EquipamientoRepository extends JsonRepository<Equipamiento> {
 
     
     public synchronized Optional<Equipamiento> guardarSiNoExiste(Equipamiento equipamiento) {
-        boolean repetido = todos().stream().anyMatch(e -> 
-            e.espacioId().equals(equipamiento.espacioId()) && 
-            e.nombre().trim().equalsIgnoreCase(equipamiento.nombre().trim())
+        // Mismo nombre en el mismo espacio, sin distinguir mayusculas ni espacios sobrantes (tambien internos).
+        boolean repetido = todos().stream().anyMatch(e ->
+            e.espacioId().equals(equipamiento.espacioId()) &&
+            comparable(e.nombre()).equals(comparable(equipamiento.nombre()))
         );
         return repetido ? Optional.empty() : Optional.of(guardar(equipamiento));
+    }
+
+    private static String comparable(String nombre) {
+        return nombre.trim().replaceAll("\s+", " ").toLowerCase(java.util.Locale.ROOT);
     }
 }

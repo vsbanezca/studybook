@@ -77,8 +77,12 @@ class EquipamientoTests {
 	}
 
 	private static String cuerpo(String nombre, String categoria, String descripcion, String estado, Long espacio) {
-		return "{\"nombre\":%s,\"categoria\":%s,\"descripcion\":%s,\"estado\":%s,\"espacioId\":%s}".formatted(
-				texto(nombre), texto(categoria), texto(descripcion), texto(estado), espacio);
+		return cuerpo(nombre, categoria, descripcion, estado, "2", espacio);
+	}
+
+	private static String cuerpo(String nombre, String categoria, String descripcion, String estado, String cantidad, Long espacio) {
+		return "{\"nombre\":%s,\"categoria\":%s,\"descripcion\":%s,\"estado\":%s,\"cantidad\":%s,\"espacioId\":%s}".formatted(
+				texto(nombre), texto(categoria), texto(descripcion), texto(estado), cantidad, espacio);
 	}
 
 	private static String texto(String v) {
@@ -184,7 +188,46 @@ class EquipamientoTests {
 		assertThat(crear(admin, valido("Proyector")).getResponse().getStatus()).isEqualTo(200);
 		MvcResult r = crear(admin, valido("  PROYECTOR "));
 		assertThat(r.getResponse().getStatus()).isEqualTo(400);
-		assertThat(r.getResponse().getContentAsString()).contains("Este espacio ya tiene ese equipamiento");
+		assertThat(r.getResponse().getContentAsString()).contains("Ya existe ese equipamiento en este espacio");
+	}
+
+	@Test
+	void losEspaciosInternosSobrantesTampocoEvitanElDuplicado() throws Exception {
+		assertThat(crear(admin, valido("Pantalla grande")).getResponse().getStatus()).isEqualTo(200);
+		MvcResult r = crear(admin, valido(" PANTALLA    grande "));
+		assertThat(r.getResponse().getStatus()).isEqualTo(400);
+		assertThat(r.getResponse().getContentAsString()).contains("Ya existe ese equipamiento en este espacio");
+		assertThat(equipamientos.listarPorEspacio(espacioId)).hasSize(1);
+	}
+
+	@Test
+	void laCantidadSeGuardaYSeDevuelve() throws Exception {
+		MvcResult r = crear(admin, cuerpo("Silla", "Mobiliario", "Silla", "Disponible", "5", espacioId));
+		assertThat(r.getResponse().getStatus()).isEqualTo(200);
+		assertThat(r.getResponse().getContentAsString()).contains("\"cantidad\":5");
+		assertThat(equipamientos.listarPorEspacio(espacioId).get(0).cantidad()).isEqualTo(5);
+		assertThat(listar(miembro, espacioId).getResponse().getContentAsString()).contains("\"cantidad\":5");
+	}
+
+	@Test
+	void laCantidadDebeSerUnEnteroMayorOIgualA1IndicandoElCampo() throws Exception {
+		for (String mala : new String[] { "0", "-3", "\"abc\"", "2.5", "\"2.5\"", "\"\"", "null" }) {
+			MvcResult r = crear(admin, cuerpo("Silla", "Mobiliario", "Silla", "Disponible", mala, espacioId));
+			assertThat(r.getResponse().getStatus()).as(mala).isEqualTo(400);
+			assertThat(r.getResponse().getContentAsString()).as(mala).contains("\"cantidad\"");
+		}
+		assertThat(crear(admin, cuerpo("Silla", "Mobiliario", "Silla", "Disponible", "0", espacioId)).getResponse().getContentAsString())
+				.contains("La cantidad debe ser un número entero mayor o igual a 1");
+		assertThat(equipamientos.listarPorEspacio(espacioId)).isEmpty();
+	}
+
+	@Test
+	void unArchivoAnteriorSinCantidadSeLeeConCantidad1(@TempDir Path carpeta) throws Exception {
+		Files.writeString(carpeta.resolve("equipamientos.json"),
+				"[{\"id\":1,\"nombre\":\"Proyector\",\"categoria\":\"Audiovisual\",\"descripcion\":\"d\",\"estado\":\"Disponible\",\"espacioId\":7}]");
+		EquipamientoRepository leido = new EquipamientoRepository(carpeta.toString());
+		assertThat(leido.listarPorEspacio(7L)).hasSize(1);
+		assertThat(leido.listarPorEspacio(7L).get(0).cantidad()).isEqualTo(1);
 	}
 
 	@Test
@@ -221,7 +264,7 @@ class EquipamientoTests {
 	@Test
 	void elEquipamientoPersisteAlReiniciar(@TempDir Path carpeta) {
 		EquipamientoRepository antes = new EquipamientoRepository(carpeta.toString());
-		antes.guardar(new Equipamiento(null, "Proyector", "Audiovisual", "d", "Disponible", 1L));
+		antes.guardar(new Equipamiento(null, "Proyector", "Audiovisual", "d", "Disponible", 3, 1L));
 		assertThat(Files.exists(carpeta.resolve("equipamientos.json"))).isTrue();
 		EquipamientoRepository despues = new EquipamientoRepository(carpeta.toString());
 		assertThat(despues.listarPorEspacio(1L)).extracting(Equipamiento::nombre).containsExactly("Proyector");

@@ -16,7 +16,9 @@ public class EquipamientoService {
     // Textos de frontend/src/app/compartido/messages.ts
     static final String CAMPO_OBLIGATORIO = "Este campo es obligatorio.";
     static final String ESPACIO_NO_EXISTE = "El espacio indicado no existe";
-    static final String EQUIPAMIENTO_REPETIDO = "Este espacio ya tiene ese equipamiento";
+    // SUPOSICION: texto propuesto para el duplicado, a confirmar con el equipo.
+    static final String EQUIPAMIENTO_REPETIDO = "Ya existe ese equipamiento en este espacio";
+    static final String CANTIDAD_INVALIDA = "La cantidad debe ser un número entero mayor o igual a 1";
 
     private final EquipamientoRepository equipamientoRepository;
     private final EspacioRepository espacioRepository;
@@ -45,6 +47,7 @@ public class EquipamientoService {
         String categoria = validarObligatorio(request.getCategoria(), "categoria");
         String descripcion = validarObligatorio(request.getDescripcion(), "descripcion");
         String estado = validarObligatorio(request.getEstado(), "estado");
+        int cantidad = validarCantidad(request.getCantidad());
         
         if (request.getEspacioId() == null) {
             throw new ValidacionException(CAMPO_OBLIGATORIO, "espacioId");
@@ -61,7 +64,8 @@ public class EquipamientoService {
                 nombre, 
                 categoria, 
                 descripcion, 
-                estado, 
+                estado,
+                cantidad,
                 request.getEspacioId()
         );
 
@@ -73,6 +77,19 @@ public class EquipamientoService {
         }
         
         return resultado.get();
+    }
+
+    private static int validarCantidad(String texto) {
+        String valor = validarObligatorio(texto, "cantidad");
+        try {
+            int cantidad = Integer.parseInt(valor);
+            if (cantidad >= 1) {
+                return cantidad;
+            }
+        } catch (NumberFormatException e) {
+            // se informa abajo
+        }
+        throw new ValidacionException(CANTIDAD_INVALIDA, "cantidad");
     }
 
     private boolean existeEspacio(Long espacioId) {

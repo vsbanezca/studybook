@@ -40,7 +40,7 @@ public class CargaEspaciosPrueba implements ApplicationRunner {
 					.filter(x -> x.nombre().equalsIgnoreCase(e.nombre()) && x.ubicacion().equalsIgnoreCase(e.ubicacion()))
 					.findFirst().orElseThrow().id();
 			for (Equipamiento q : ejemplo.equipamiento()) {
-				equipamientos.guardarSiNoExiste(new Equipamiento(null, q.nombre(), q.categoria(), q.descripcion(), q.estado(), id));
+				equipamientos.guardarSiNoExiste(new Equipamiento(null, q.nombre(), q.categoria(), q.descripcion(), q.estado(), q.cantidad(), id));
 			}
 		}
 	}
@@ -48,19 +48,19 @@ public class CargaEspaciosPrueba implements ApplicationRunner {
 	private static List<Ejemplo> ejemplos() {
 		return List.of(
 				new Ejemplo(new Espacio(null, "Sala de estudio 1", "Biblioteca", "1", "Sala para grupos pequeños", 6), List.of(
-						equipo("Pizarra blanca", "Mobiliario", "Pizarra blanca de pared", "Disponible"),
-						equipo("Proyector", "Audiovisual", "Proyector con entrada HDMI", "Disponible"),
-						equipo("Regleta de enchufes", "Electricidad", "Regleta con seis tomas", "Disponible"))),
+						equipo("Pizarra blanca", "Mobiliario", "Pizarra blanca de pared", "Disponible", 1),
+						equipo("Proyector", "Audiovisual", "Proyector con entrada HDMI", "Disponible", 1),
+						equipo("Regleta de enchufes", "Electricidad", "Regleta con seis tomas", "Disponible", 3))),
 				new Ejemplo(new Espacio(null, "Cubículo A", "Biblioteca", "2", "Cubículo individual", 2), List.of(
-						equipo("Lámpara de escritorio", "Mobiliario", "Lámpara LED regulable", "Disponible"),
-						equipo("Puerto USB de carga", "Electricidad", "Dos puertos USB en el escritorio", "Disponible"))),
+						equipo("Lámpara de escritorio", "Mobiliario", "Lámpara LED regulable", "Disponible", 1),
+						equipo("Puerto USB de carga", "Electricidad", "Dos puertos USB en el escritorio", "Disponible", 2))),
 				new Ejemplo(new Espacio(null, "Sala de reuniones", "Edificio de Ingeniería", "3", "Sala con pizarra", 12), List.of(
-						equipo("Pantalla de 55 pulgadas", "Audiovisual", "Pantalla con conexión inalámbrica", "Disponible"),
-						equipo("Pizarra blanca", "Mobiliario", "Pizarra blanca grande con marcadores", "Disponible"),
-						equipo("Equipo de videollamada", "Audiovisual", "Cámara y micrófono de sala", "En mantenimiento"))));
+						equipo("Pantalla de 55 pulgadas", "Audiovisual", "Pantalla con conexión inalámbrica", "Disponible", 1),
+						equipo("Pizarra blanca", "Mobiliario", "Pizarra blanca grande con marcadores", "Disponible", 2),
+						equipo("Equipo de videollamada", "Audiovisual", "Cámara y micrófono de sala", "En mantenimiento", 1))));
 	}
 
-	private static Equipamiento equipo(String nombre, String categoria, String descripcion, String estado) {
-		return new Equipamiento(null, nombre, categoria, descripcion, estado, null);
+	private static Equipamiento equipo(String nombre, String categoria, String descripcion, String estado, int cantidad) {
+		return new Equipamiento(null, nombre, categoria, descripcion, estado, cantidad, null);
 	}
 }

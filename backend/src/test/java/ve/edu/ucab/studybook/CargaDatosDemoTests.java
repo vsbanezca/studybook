@@ -36,6 +36,16 @@ class CargaDatosDemoTests {
 	}
 
 	@Test
+	void elEquipamientoDeLaDemoTraeCantidadesDistintas(@TempDir Path carpeta) {
+		EspacioRepository espacios = new EspacioRepository(carpeta.toString());
+		EquipamientoRepository equipamientos = new EquipamientoRepository(carpeta.toString());
+		new CargaEspaciosPrueba(espacios, equipamientos).run(null);
+		var cantidades = espacios.listar().stream().flatMap(e -> equipamientos.listarPorEspacio(e.id()).stream())
+				.map(q -> q.cantidad()).distinct().toList();
+		assertThat(cantidades).contains(1, 2, 3);
+	}
+
+	@Test
 	void soloSeCargaEnElPerfilDev() {
 		Profile perfil = CargaEspaciosPrueba.class.getAnnotation(Profile.class);
 		assertThat(perfil.value()).containsExactly("dev");
