@@ -10,6 +10,10 @@ export const MSG = {
     sinReservasTitulo: 'Aún no tienes reservas',                                  // PROPUESTA
     sinReservasTexto:  'Cuando reserves un espacio, aparecerá aquí.',             // PROPUESTA
     confirmar:         '¿Confirmas la reserva?',                                  // PROPUESTA
+    espacioObligatorio: 'Selecciona un espacio',                                  // PROPUESTA
+    fechaPasada:       'La fecha no puede estar en el pasado',                    // PROPUESTA
+    finNoPosterior:    'La hora de fin debe ser posterior a la hora de inicio',   // PROPUESTA
+    asistentesInvalidos: 'Los asistentes deben ser un número entero mayor o igual a 1', // PROPUESTA
   },
   cuenta: {
     creada:            'La cuenta se ha creado exitosamente',                     // PROPUESTA

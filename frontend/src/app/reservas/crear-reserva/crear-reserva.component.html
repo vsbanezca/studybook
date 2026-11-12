@@ -1,0 +1,83 @@
+<main class="contenedor-pantalla">
+  <h1 class="sb-titulo-pantalla">Crear reserva</h1>
+  <p class="texto-apoyo sb-apoyo">Elige un espacio e indica la fecha, el horario y la cantidad de asistentes.</p>
+
+  @if (creada()) {
+    <sb-message tipo="exito" [texto]="textoExito" (aceptado)="aceptarExito()" />
+  } @else if (cargado() && espacios().length > 0) {
+    <section aria-labelledby="titulo-espacios">
+      <h2 class="sb-titulo-seccion" id="titulo-espacios">Espacio</h2>
+      <div class="grid-espacios" role="radiogroup" aria-labelledby="titulo-espacios">
+        @for (espacio of espacios(); track espacio.id) {
+          <sb-space-card
+            [espacio]="espacio"
+            modo="selectable"
+            [seleccionado]="seleccionado()?.id === espacio.id"
+            (seleccionar)="elegir($event)" />
+        }
+      </div>
+      @if (errorDe('espacioId')) {
+        <span class="sb-error-texto" id="espacioId-error"><sb-icon nombre="circle-alert" />{{ errorDe('espacioId') }}</span>
+      }
+    </section>
+
+    <form (ngSubmit)="reservar()" novalidate>
+      <h2 class="sb-titulo-seccion">Datos de la reserva</h2>
+
+      <div class="grupo-campo sb-campo">
+        <label for="fecha" class="sb-etiqueta">Fecha</label>
+        <input type="date" id="fecha" name="fecha" [min]="minimoFecha" [(ngModel)]="datos.fecha" class="sb-input"
+          [attr.aria-invalid]="errorDe('fecha') ? 'true' : null"
+          [attr.aria-describedby]="errorDe('fecha') ? 'fecha-error' : null">
+        @if (errorDe('fecha')) {
+          <span class="sb-error-texto" id="fecha-error"><sb-icon nombre="circle-alert" />{{ errorDe('fecha') }}</span>
+        }
+      </div>
+
+      <div class="fila-horas">
+        <div class="grupo-campo sb-campo">
+          <label for="horaInicio" class="sb-etiqueta">Hora de inicio</label>
+          <input type="time" id="horaInicio" name="horaInicio" [(ngModel)]="datos.horaInicio" class="sb-input"
+            [attr.aria-invalid]="errorDe('horaInicio') ? 'true' : null"
+            [attr.aria-describedby]="errorDe('horaInicio') ? 'horaInicio-error' : null">
+          @if (errorDe('horaInicio')) {
+            <span class="sb-error-texto" id="horaInicio-error"><sb-icon nombre="circle-alert" />{{ errorDe('horaInicio') }}</span>
+          }
+        </div>
+        <div class="grupo-campo sb-campo">
+          <label for="horaFin" class="sb-etiqueta">Hora de fin</label>
+          <input type="time" id="horaFin" name="horaFin" [(ngModel)]="datos.horaFin" class="sb-input"
+            [attr.aria-invalid]="errorDe('horaFin') ? 'true' : null"
+            [attr.aria-describedby]="errorDe('horaFin') ? 'horaFin-error' : null">
+          @if (errorDe('horaFin')) {
+            <span class="sb-error-texto" id="horaFin-error"><sb-icon nombre="circle-alert" />{{ errorDe('horaFin') }}</span>
+          }
+        </div>
+      </div>
+
+      <div class="grupo-campo sb-campo">
+        <label for="asistentes" class="sb-etiqueta">Cantidad de asistentes</label>
+        <input type="number" id="asistentes" name="asistentes" min="1" step="1" [(ngModel)]="datos.asistentes" class="sb-input"
+          [attr.aria-invalid]="errorDe('asistentes') ? 'true' : null"
+          [attr.aria-describedby]="errorDe('asistentes') ? 'asistentes-error' : null">
+        @if (errorDe('asistentes')) {
+          <span class="sb-error-texto" id="asistentes-error"><sb-icon nombre="circle-alert" />{{ errorDe('asistentes') }}</span>
+        }
+      </div>
+
+      <div class="acciones-formulario">
+        <a class="sb-btn sb-btn-secundario" routerLink="/mis-reservas">Cancelar</a>
+        <button type="submit" class="sb-btn sb-btn-primario" [disabled]="enviando()" [attr.aria-busy]="enviando() ? 'true' : null">
+          Reservar
+        </button>
+      </div>
+    </form>
+  }
+
+  <sb-confirm-dialog
+    [abierto]="confirmando()"
+    [titulo]="textoConfirmar"
+    [datos]="datosConfirmacion"
+    (confirmado)="confirmarReserva()"
+    (rechazado)="rechazarConfirmacion()" />
+</main>
