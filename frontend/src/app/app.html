@@ -1,5 +1,8 @@
 @if (sesion.autenticado()) {
-  <sb-header [rol]="sesion.rolHeader()" [nombre]="sesion.usuario()?.nombre ?? ''" />
+  <sb-header
+    [rol]="sesion.rolHeader()"
+    [nombre]="sesion.usuario()?.nombre ?? ''"
+    (cerrarSesionSolicitado)="cerrarSesion()" />
 }
 <div [class.con-nav]="sesion.autenticado()">
   <router-outlet />

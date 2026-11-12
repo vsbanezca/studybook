@@ -24,6 +24,14 @@ public class SesionService {
 				new SesionResponse(cuenta.nombre(), cuenta.correo(), cuenta.rol()));
 	}
 
+	/** Cierra la sesion: la invalida en el servidor, de modo que la cookie deja de servir. Sin sesion no hace nada. */
+	public void cerrar(HttpServletRequest request) {
+		HttpSession sesion = request.getSession(false);
+		if (sesion != null) {
+			sesion.invalidate();
+		}
+	}
+
 	public SesionResponse actual(HttpServletRequest request) {
 		HttpSession sesion = request.getSession(false);
 		Object valor = sesion == null ? null : sesion.getAttribute(ATRIBUTO);
