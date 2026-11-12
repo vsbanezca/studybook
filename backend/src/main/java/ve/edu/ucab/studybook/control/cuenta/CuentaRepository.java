@@ -34,4 +34,28 @@ public class CuentaRepository extends JsonRepository<Cuenta> {
 		agregar(nueva);
 		return nueva;
 	}
+
+	/** Dato que ya estaba registrado en otra cuenta. */
+	public enum Duplicado {
+		CORREO, CEDULA
+	}
+
+	/** Resultado de guardarSiEsUnica: la cuenta guardada o el dato que estaba repetido. */
+	public record ResultadoGuardado(Cuenta cuenta, Duplicado duplicado) {
+	}
+
+	/**
+	 * Comprueba que el correo y la cedula no existan y guarda, todo en una sola seccion sincronizada:
+	 * dos registros simultaneos con el mismo correo o la misma cedula no pueden crear dos cuentas.
+	 */
+	public synchronized ResultadoGuardado guardarSiEsUnica(Cuenta cuenta) {
+		if (buscarPorCorreo(cuenta.correo()).isPresent()) {
+			return new ResultadoGuardado(null, Duplicado.CORREO);
+		}
+		boolean cedulaRepetida = todos().stream().anyMatch(c -> cuenta.cedula().equals(c.cedula()));
+		if (cedulaRepetida) {
+			return new ResultadoGuardado(null, Duplicado.CEDULA);
+		}
+		return new ResultadoGuardado(guardar(cuenta), null);
+	}
 }
