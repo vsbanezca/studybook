@@ -65,6 +65,39 @@ describe('ConsultarEspaciosComponent', () => {
     }
   });
 
+  it('«Reservar» se ve solo para el Miembro; «Ver equipamiento» para ambos', async () => {
+    for (const [rol, reservar] of [['MIEMBRO', true], ['ADMINISTRADOR', false]] as const) {
+      TestBed.resetTestingModule();
+      const { fixture, http, el } = montar(ConsultarEspaciosComponent, rol);
+      fixture.detectChanges();
+      http.expectOne('/api/espacios').flush([SALA]);
+      await fixture.whenStable();
+      const botones = [...el.querySelectorAll('sb-space-card button')].map((b) => b.textContent?.trim() ?? '');
+      expect(botones.some((t) => t.startsWith('Ver equipamiento'))).toBe(true);
+      expect(botones.includes('Reservar')).toBe(reservar);
+      el.remove();
+    }
+  });
+
+  it('«Ver equipamiento» navega a la pantalla de equipamiento del espacio', async () => {
+    const { fixture, http, el } = montar(ConsultarEspaciosComponent, 'MIEMBRO');
+    const navegar = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    fixture.detectChanges();
+    http.expectOne('/api/espacios').flush([SALA]);
+    await fixture.whenStable();
+    const ver = [...el.querySelectorAll<HTMLButtonElement>('sb-space-card button')].find((b) => b.textContent?.includes('Ver equipamiento'))!;
+    ver.click();
+    expect(navegar).toHaveBeenCalledWith(['/espacios', 1, 'equipamiento']);
+  });
+
+  it('el texto de apoyo del Administrador no habla de reservar', async () => {
+    const { fixture, http, el } = montar(ConsultarEspaciosComponent, 'ADMINISTRADOR');
+    fixture.detectChanges();
+    http.expectOne('/api/espacios').flush([SALA]);
+    await fixture.whenStable();
+    expect(el.querySelector('.texto-apoyo')?.textContent).not.toContain('reservarlo');
+  });
+
   it('si falla la carga muestra un mensaje con Aceptar', async () => {
     const { fixture, http } = montar(ConsultarEspaciosComponent, 'MIEMBRO');
     fixture.detectChanges();
