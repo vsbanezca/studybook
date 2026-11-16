@@ -16,12 +16,9 @@
           type="email"
           formControlName="correo"
           autocomplete="username"
-          [attr.aria-invalid]="mostrarErrorCorreo() ? 'true' : null"
-          [attr.aria-describedby]="mostrarErrorCorreo() ? 'correo-error' : null"
+          [sbCampo]="form.controls.correo"
         />
-        @if (mostrarErrorCorreo()) {
-          <span class="sb-error-texto" id="correo-error"><sb-icon nombre="circle-alert" />{{ errorCorreo() }}</span>
-        }
+        <sb-field-error idMensaje="correo-error" [control]="form.controls.correo" [mensajes]="mensajes['correo']" />
       </div>
 
       <div class="sb-campo">
@@ -33,12 +30,9 @@
           type="password"
           formControlName="clave"
           autocomplete="current-password"
-          [attr.aria-invalid]="mostrarErrorClave() ? 'true' : null"
-          [attr.aria-describedby]="mostrarErrorClave() ? 'clave-error' : null"
+          [sbCampo]="form.controls.clave"
         />
-        @if (mostrarErrorClave()) {
-          <span class="sb-error-texto" id="clave-error"><sb-icon nombre="circle-alert" />{{ errorClave() }}</span>
-        }
+        <sb-field-error idMensaje="clave-error" [control]="form.controls.clave" [mensajes]="mensajes['clave']" />
       </div>
 
       <button
