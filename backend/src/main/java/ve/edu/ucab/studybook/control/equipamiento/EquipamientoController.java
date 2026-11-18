@@ -2,6 +2,7 @@ package ve.edu.ucab.studybook.control.equipamiento;
 
 import java.util.List;
 
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import ve.edu.ucab.studybook.model.Equipamiento;
@@ -22,7 +23,7 @@ public class EquipamientoController {
     }
 
     @PostMapping
-    public Equipamiento crearEquipamiento(@RequestBody EquipamientoRequest request) {
+    public Equipamiento crearEquipamiento(@Valid @RequestBody EquipamientoRequest request) {
         return equipamientoService.crearEquipamiento(request);
     }
 }

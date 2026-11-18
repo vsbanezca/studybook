@@ -3,13 +3,13 @@ package ve.edu.ucab.studybook.control.cuenta;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Locale;
-import java.util.regex.Pattern;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import ve.edu.ucab.studybook.control.comun.Telefono;
+import ve.edu.ucab.studybook.exceptions.CodigosValidacion;
 import ve.edu.ucab.studybook.exceptions.NoAutorizadoException;
 import ve.edu.ucab.studybook.exceptions.ValidacionException;
 import ve.edu.ucab.studybook.model.Cuenta;
@@ -20,26 +20,11 @@ public class CuentaService {
 
 	public static final String CREDENCIALES_INCORRECTAS = "Correo o contraseña incorrectos";
 
-	// Textos de frontend/src/app/compartido/messages.ts
-	static final String NOMBRE_OBLIGATORIO = "El nombre es obligatorio";
-	static final String CEDULA_OBLIGATORIA = "La cédula es obligatoria";
-	static final String CEDULA_FORMATO = "La cédula debe tener solo números";
-	static final String CORREO_OBLIGATORIO = "El correo es obligatorio";
-	static final String CORREO_FORMATO = "El correo debe tener formato de correo electrónico";
-	static final String CORREO_NO_INSTITUCIONAL = "Usa tu correo institucional";
-	static final String TELEFONO_OBLIGATORIO = "El teléfono es obligatorio";
-	static final String TELEFONO_FORMATO = Telefono.MENSAJE_FORMATO;
-	static final String CLAVE_OBLIGATORIA = "La contraseña es obligatoria";
-	static final String CLAVE_CORTA = "La contraseña debe tener al menos 8 caracteres";
-	static final String CLAVE_LARGA = "La contraseña debe tener como máximo 72 caracteres";
+	// Mensajes de duplicado: dependen de lo guardado, por eso los decide el servidor (el frontend los muestra tal cual).
 	static final String CORREO_REGISTRADO = "Ya existe una cuenta con ese correo";
 	static final String CEDULA_REGISTRADA = "Ya existe una cuenta con esa cédula";
 
-	// SUPOSICION: formatos y largos a confirmar con el equipo y la profesora.
-	private static final Pattern FORMATO_CORREO = Pattern.compile("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$");
-	private static final Pattern SOLO_DIGITOS = Pattern.compile("^\\d+$");
-	private static final int LARGO_MINIMO_CLAVE = 8;
-	/** BCrypt solo usa los primeros 72 bytes: se rechaza una clave mas larga en vez de truncarla en silencio. */
+	/** BCrypt solo usa los primeros 72 bytes: se rechaza una clave mas larga en vez de truncarla en silencio (seguridad). */
 	private static final int BYTES_MAXIMOS_CLAVE = 72;
 
 	private final CuentaRepository repositorio;
@@ -71,42 +56,25 @@ public class CuentaService {
 	 * cifrada. No inicia sesion. Devuelve la cuenta guardada: quien la use no debe exponer la clave.
 	 */
 	public Cuenta registrar(RegistroRequest peticion) {
-		String nombre = obligatorio(peticion.nombre(), "nombre", NOMBRE_OBLIGATORIO);
-		String cedula = obligatorio(peticion.cedula(), "cedula", CEDULA_OBLIGATORIA);
-		if (!SOLO_DIGITOS.matcher(cedula).matches()) {
-			throw new ValidacionException(CEDULA_FORMATO, "cedula");
-		}
-		String correo = obligatorio(peticion.correo(), "correo", CORREO_OBLIGATORIO).toLowerCase(Locale.ROOT);
-		if (!FORMATO_CORREO.matcher(correo).matches()) {
-			throw new ValidacionException(CORREO_FORMATO, "correo");
-		}
+		// El formato lo valida Bean Validation en RegistroRequest (red de seguridad); aqui solo quedan las reglas de
+		// acceso y de lo guardado: dominio institucional, largo seguro para BCrypt y duplicados.
+		String correo = peticion.correo().trim().toLowerCase(Locale.ROOT);
 		if (!esInstitucional(correo)) {
-			throw new ValidacionException(CORREO_NO_INSTITUCIONAL, "correo");
-		}
-		obligatorio(peticion.telefono(), "telefono", TELEFONO_OBLIGATORIO);
-		// Se normaliza (sin espacios, guiones ni parentesis) antes de validar y se guarda el valor normalizado.
-		String telefono = Telefono.normalizar(peticion.telefono());
-		if (!Telefono.esValido(telefono)) {
-			throw new ValidacionException(TELEFONO_FORMATO, "telefono");
+			throw new ValidacionException(CodigosValidacion.DOMINIO_NO_INSTITUCIONAL, "correo");
 		}
 		String clave = peticion.clave();
-		if (clave == null || clave.isEmpty()) {
-			throw new ValidacionException(CLAVE_OBLIGATORIA, "clave");
-		}
-		if (clave.length() < LARGO_MINIMO_CLAVE) {
-			throw new ValidacionException(CLAVE_CORTA, "clave");
-		}
 		if (clave.getBytes(StandardCharsets.UTF_8).length > BYTES_MAXIMOS_CLAVE) {
-			throw new ValidacionException(CLAVE_LARGA, "clave");
+			throw new ValidacionException(CodigosValidacion.LONGITUD_MAXIMA, "clave");
 		}
 
-		Cuenta nueva = new Cuenta(null, nombre, cedula, correo, telefono, encoder.encode(clave), Rol.MIEMBRO);
+		Cuenta nueva = new Cuenta(null, peticion.nombre().trim(), peticion.cedula().trim(), correo,
+				Telefono.normalizar(peticion.telefono()), encoder.encode(clave), Rol.MIEMBRO);
 		CuentaRepository.ResultadoGuardado resultado = repositorio.guardarSiEsUnica(nueva);
 		if (resultado.duplicado() == CuentaRepository.Duplicado.CORREO) {
-			throw new ValidacionException(CORREO_REGISTRADO);
+			throw ValidacionException.literal(CORREO_REGISTRADO, "correo");
 		}
 		if (resultado.duplicado() == CuentaRepository.Duplicado.CEDULA) {
-			throw new ValidacionException(CEDULA_REGISTRADA);
+			throw ValidacionException.literal(CEDULA_REGISTRADA, "cedula");
 		}
 		return resultado.cuenta();
 	}
@@ -114,12 +82,5 @@ public class CuentaService {
 	private boolean esInstitucional(String correo) {
 		String dominio = correo.substring(correo.lastIndexOf('@') + 1);
 		return dominiosPermitidos.contains(dominio);
-	}
-
-	private static String obligatorio(String valor, String campo, String mensaje) {
-		if (valor == null || valor.isBlank()) {
-			throw new ValidacionException(mensaje, campo);
-		}
-		return valor.trim();
 	}
 }

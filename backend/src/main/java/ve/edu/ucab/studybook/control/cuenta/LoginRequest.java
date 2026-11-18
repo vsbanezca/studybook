@@ -2,11 +2,12 @@ package ve.edu.ucab.studybook.control.cuenta;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
+import ve.edu.ucab.studybook.exceptions.CodigosValidacion;
 
 public record LoginRequest(
-		@NotBlank(message = "El correo es obligatorio")
-		@Pattern(regexp = "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$", message = "El correo debe tener formato de correo electrónico")
+		@NotBlank(message = CodigosValidacion.OBLIGATORIO)
+		@Pattern(regexp = "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$", message = CodigosValidacion.FORMATO)
 		String correo,
-		@NotBlank(message = "La contraseña es obligatoria")
+		@NotBlank(message = CodigosValidacion.OBLIGATORIO)
 		String clave) {
 }

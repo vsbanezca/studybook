@@ -35,7 +35,7 @@ public class CuentaController {
 	/** Registro publico (no exige sesion). Crea una cuenta de Miembro y NO inicia sesion. */
 	@PostMapping("/registro")
 	@ResponseStatus(HttpStatus.CREATED)
-	public SesionResponse registrar(@RequestBody RegistroRequest peticion) {
+	public SesionResponse registrar(@Valid @RequestBody RegistroRequest peticion) {
 		Cuenta cuenta = servicio.registrar(peticion);
 		return new SesionResponse(cuenta.nombre(), cuenta.correo(), cuenta.rol());
 	}

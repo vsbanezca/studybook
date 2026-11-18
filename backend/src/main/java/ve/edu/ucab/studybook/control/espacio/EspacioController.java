@@ -1,5 +1,6 @@
 package ve.edu.ucab.studybook.control.espacio;
 
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 import ve.edu.ucab.studybook.model.Espacio;
 import java.util.List;
@@ -22,7 +23,7 @@ public class EspacioController {
 
     // POST: El AutorizacionInterceptor debe verificar que el usuario tenga rol de Administrador
     @PostMapping
-    public Espacio crearEspacio(@RequestBody EspacioRequest request) {
+    public Espacio crearEspacio(@Valid @RequestBody EspacioRequest request) {
         return espacioService.crearEspacio(request);
     }
 }

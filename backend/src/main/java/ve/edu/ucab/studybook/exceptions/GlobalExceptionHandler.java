@@ -3,6 +3,7 @@ package ve.edu.ucab.studybook.exceptions;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import tools.jackson.databind.exc.MismatchedInputException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -20,17 +21,31 @@ public class GlobalExceptionHandler {
 	public record ErrorResponse(String mensaje, Map<String, String> campos) {
 	}
 
+	/**
+	 * Red de seguridad de Bean Validation: responde 400 con cada campo y un codigo (sin texto). Si un campo falla por
+	 * varias reglas, gana "obligatorio", que es lo que el usuario debe corregir primero.
+	 */
 	@ExceptionHandler(MethodArgumentNotValidException.class)
 	public ResponseEntity<ErrorResponse> validacion(MethodArgumentNotValidException ex) {
 		Map<String, String> campos = new LinkedHashMap<>();
-		ex.getBindingResult().getFieldErrors()
-				.forEach(e -> campos.putIfAbsent(e.getField(), e.getDefaultMessage()));
+		ex.getBindingResult().getFieldErrors().forEach(e -> {
+			String actual = campos.get(e.getField());
+			if (actual == null || CodigosValidacion.OBLIGATORIO.equals(e.getDefaultMessage())) {
+				campos.put(e.getField(), e.getDefaultMessage());
+			}
+		});
 		return ResponseEntity.badRequest().body(new ErrorResponse(DATOS_INCORRECTOS, campos));
 	}
 
+	/** Cuerpo que no se puede leer. Si el fallo es de un campo (por ejemplo, "abc" donde va un entero) se indica el campo. */
 	@ExceptionHandler(HttpMessageNotReadableException.class)
 	public ResponseEntity<ErrorResponse> cuerpoIlegible(HttpMessageNotReadableException ex) {
-		return ResponseEntity.badRequest().body(new ErrorResponse(DATOS_INCORRECTOS, Map.of()));
+		Map<String, String> campos = new LinkedHashMap<>();
+		if (ex.getCause() instanceof MismatchedInputException mismatch && !mismatch.getPath().isEmpty()
+				&& mismatch.getPath().get(0).getPropertyName() != null) {
+			campos.put(mismatch.getPath().get(0).getPropertyName(), CodigosValidacion.FORMATO);
+		}
+		return ResponseEntity.badRequest().body(new ErrorResponse(DATOS_INCORRECTOS, campos));
 	}
 
 	@ExceptionHandler(ValidacionException.class)
