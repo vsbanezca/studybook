@@ -179,6 +179,71 @@ describe('CrearEquipamientoComponent', () => {
     http.expectNone('/api/equipamientos');
   });
 
+  describe('validacion interactiva', () => {
+    const error = (id: string) => document.querySelector(`#${id}-error`)?.textContent?.trim() ?? '';
+    const salir = async (fixture: { whenStable: () => Promise<unknown> }, id: string) => {
+      campo(id).dispatchEvent(new Event('blur'));
+      await fixture.whenStable();
+    };
+
+    it('un campo intacto no muestra error', async () => {
+      await abrir();
+      ['nombre', 'categoria', 'estado', 'cantidad', 'descripcion'].forEach((id) => {
+        expect(error(id)).toBe('');
+        expect(campo(id).getAttribute('aria-invalid')).toBeNull();
+      });
+    });
+
+    it('muestra el error al salir, se corrige tecla a tecla y desaparece', async () => {
+      const { fixture } = await abrir();
+      for (const id of ['nombre', 'categoria', 'estado', 'descripcion']) {
+        await salir(fixture, id);
+        expect(error(id), id).toBe('Este campo es obligatorio.');
+        expect(campo(id).getAttribute('aria-describedby')).toBe(id + '-error');
+        escribir(id, 'x');
+        await fixture.whenStable();
+        expect(error(id), id).toBe('');
+      }
+    });
+
+    it('la cantidad rechaza 0, negativos y decimales al salir del campo', async () => {
+      const { fixture } = await abrir();
+      for (const malo of ['0', '-2', '2.5']) {
+        escribir('cantidad', malo);
+        await salir(fixture, 'cantidad');
+        expect(error('cantidad'), malo).toBe('La cantidad debe ser un número entero mayor o igual a 1');
+      }
+      escribir('cantidad', '4');
+      await fixture.whenStable();
+      expect(error('cantidad')).toBe('');
+    });
+
+    it('presionar con datos invalidos muestra el modal literal, Aceptar enfoca el primer invalido y conserva los datos', async () => {
+      const { fixture, el } = await abrir();
+      escribir('categoria', 'Audiovisual');
+      await enviar(fixture, el);
+      expect(mensaje()?.textContent).toContain('Datos proporcionados incorrectos');
+      expect(error('nombre')).not.toBe('');
+      mensaje()!.querySelector<HTMLButtonElement>('button')!.click();
+      await fixture.whenStable();
+      expect(document.activeElement).toBe(campo('nombre'));
+      expect(campo('categoria').value).toBe('Audiovisual');
+    });
+
+    it('un duplicado del servidor queda marcado en el campo nombre', async () => {
+      const { fixture, http, el } = await abrir();
+      llenar();
+      await enviar(fixture, el);
+      botonesConfirmar()[1].click();
+      http.expectOne('/api/equipamientos').flush(
+        { mensaje: 'Ya existe ese equipamiento en este espacio', campos: { nombre: 'Ya existe ese equipamiento en este espacio' } },
+        { status: 400, statusText: 'Bad Request' },
+      );
+      await fixture.whenStable();
+      expect(error('nombre')).toBe('Ya existe ese equipamiento en este espacio');
+    });
+  });
+
   it('rechaza una cantidad de 0, negativa, decimal o vacia (no numerica) con Aceptar y sin llamar al servidor', async () => {
     const casos: [string, string][] = [
       ['0', 'La cantidad debe ser un número entero mayor o igual a 1'],
