@@ -105,7 +105,7 @@ class ReservaHoraTests {
 			MvcResult r = enviar(ruta, cuerpo(fecha, inicio, fin));
 			assertThat(r.getResponse().getStatus()).as("%s %s", ruta, inicio).isEqualTo(400);
 			assertThat(r.getResponse().getContentAsString()).startsWith("{\"mensaje\":\"Datos proporcionados incorrectos\"")
-					.contains("\"horaInicio\":\"La hora de inicio no puede ser anterior a la hora actual\"");
+					.contains("\"horaInicio\":\"hora_inicio_pasada\"");
 		}
 		assertThat(reservas.listar().stream().filter(x -> x.espacioId().equals(espacioId))).isEmpty();
 	}
@@ -138,7 +138,7 @@ class ReservaHoraTests {
 		for (String ruta : new String[] { "/api/reservas/validar", "/api/reservas" }) {
 			MvcResult r = enviar(ruta, cuerpo(HOY.minusDays(1), "18:00", "19:00"));
 			assertThat(r.getResponse().getStatus()).isEqualTo(400);
-			assertThat(r.getResponse().getContentAsString()).contains("\"fecha\":\"La fecha no puede estar en el pasado\"");
+			assertThat(r.getResponse().getContentAsString()).contains("\"fecha\":\"fecha_pasada\"");
 		}
 	}
 

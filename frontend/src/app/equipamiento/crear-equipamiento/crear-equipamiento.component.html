@@ -7,55 +7,35 @@
   @if (creado()) {
     <sb-message tipo="exito" [texto]="textoExito" (aceptado)="aceptarExito()" />
   } @else {
-    <form (ngSubmit)="solicitarConfirmacion()" novalidate>
+    <form [formGroup]="form" (ngSubmit)="solicitarConfirmacion()" novalidate>
       <div class="grupo-campo sb-campo">
         <label for="nombre" class="sb-etiqueta">Nombre</label>
-        <input type="text" id="nombre" name="nombre" [(ngModel)]="nuevo.nombre" class="sb-input"
-          [attr.aria-invalid]="errorDe('nombre') ? 'true' : null"
-          [attr.aria-describedby]="errorDe('nombre') ? 'nombre-error' : null">
-        @if (errorDe('nombre')) {
-          <span class="sb-error-texto" id="nombre-error"><sb-icon nombre="circle-alert" />{{ errorDe('nombre') }}</span>
-        }
+        <input type="text" id="nombre" formControlName="nombre" class="sb-input" [sbCampo]="form.controls.nombre">
+        <sb-field-error idMensaje="nombre-error" [control]="form.controls.nombre" />
       </div>
 
       <div class="grupo-campo sb-campo">
         <label for="categoria" class="sb-etiqueta">Categoría</label>
-        <input type="text" id="categoria" name="categoria" [(ngModel)]="nuevo.categoria" class="sb-input"
-          [attr.aria-invalid]="errorDe('categoria') ? 'true' : null"
-          [attr.aria-describedby]="errorDe('categoria') ? 'categoria-error' : null">
-        @if (errorDe('categoria')) {
-          <span class="sb-error-texto" id="categoria-error"><sb-icon nombre="circle-alert" />{{ errorDe('categoria') }}</span>
-        }
+        <input type="text" id="categoria" formControlName="categoria" class="sb-input" [sbCampo]="form.controls.categoria">
+        <sb-field-error idMensaje="categoria-error" [control]="form.controls.categoria" />
       </div>
 
       <div class="grupo-campo sb-campo">
         <label for="estado" class="sb-etiqueta">Estado</label>
-        <input type="text" id="estado" name="estado" [(ngModel)]="nuevo.estado" class="sb-input"
-          [attr.aria-invalid]="errorDe('estado') ? 'true' : null"
-          [attr.aria-describedby]="errorDe('estado') ? 'estado-error' : null">
-        @if (errorDe('estado')) {
-          <span class="sb-error-texto" id="estado-error"><sb-icon nombre="circle-alert" />{{ errorDe('estado') }}</span>
-        }
+        <input type="text" id="estado" formControlName="estado" class="sb-input" [sbCampo]="form.controls.estado">
+        <sb-field-error idMensaje="estado-error" [control]="form.controls.estado" />
       </div>
 
       <div class="grupo-campo sb-campo">
         <label for="cantidad" class="sb-etiqueta">Cantidad</label>
-        <input type="number" id="cantidad" name="cantidad" min="1" step="1" [(ngModel)]="nuevo.cantidad" class="sb-input"
-          [attr.aria-invalid]="errorDe('cantidad') ? 'true' : null"
-          [attr.aria-describedby]="errorDe('cantidad') ? 'cantidad-error' : null">
-        @if (errorDe('cantidad')) {
-          <span class="sb-error-texto" id="cantidad-error"><sb-icon nombre="circle-alert" />{{ errorDe('cantidad') }}</span>
-        }
+        <input type="number" id="cantidad" formControlName="cantidad" min="1" step="1" class="sb-input" [sbCampo]="form.controls.cantidad">
+        <sb-field-error idMensaje="cantidad-error" [control]="form.controls.cantidad" [mensajes]="mensajes['cantidad']" />
       </div>
 
       <div class="grupo-campo sb-campo">
         <label for="descripcion" class="sb-etiqueta">Descripción</label>
-        <textarea id="descripcion" name="descripcion" rows="3" [(ngModel)]="nuevo.descripcion" class="sb-input"
-          [attr.aria-invalid]="errorDe('descripcion') ? 'true' : null"
-          [attr.aria-describedby]="errorDe('descripcion') ? 'descripcion-error' : null"></textarea>
-        @if (errorDe('descripcion')) {
-          <span class="sb-error-texto" id="descripcion-error"><sb-icon nombre="circle-alert" />{{ errorDe('descripcion') }}</span>
-        }
+        <textarea id="descripcion" formControlName="descripcion" rows="3" class="sb-input" [sbCampo]="form.controls.descripcion"></textarea>
+        <sb-field-error idMensaje="descripcion-error" [control]="form.controls.descripcion" />
       </div>
 
       <div class="acciones-formulario">

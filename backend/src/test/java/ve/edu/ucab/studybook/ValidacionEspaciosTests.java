@@ -57,14 +57,14 @@ class ValidacionEspaciosTests {
 			throws Exception {
 		MockHttpServletResponse r = crear(json(nombre, ubicacion, piso, 4));
 		assertThat(r.getStatus()).isEqualTo(400);
-		assertThat(r.getContentAsString()).contains("\"" + campo + "\":\"Este campo es obligatorio.\"");
+		assertThat(r.getContentAsString()).contains("\"" + campo + "\":\"obligatorio\"");
 	}
 
 	@Test
 	void campoAusenteDa400() throws Exception {
 		MockHttpServletResponse r = crear("{\"ubicacion\":\"U\",\"piso\":\"1\",\"capacidad\":4}");
 		assertThat(r.getStatus()).isEqualTo(400);
-		assertThat(r.getContentAsString()).contains("\"nombre\":\"Este campo es obligatorio.\"");
+		assertThat(r.getContentAsString()).contains("\"nombre\":\"obligatorio\"");
 	}
 
 	@ParameterizedTest
@@ -72,7 +72,7 @@ class ValidacionEspaciosTests {
 	void capacidadMenorQueUnoDa400(int capacidad) throws Exception {
 		MockHttpServletResponse r = crear(json("N", "U", "1", capacidad));
 		assertThat(r.getStatus()).isEqualTo(400);
-		assertThat(r.getContentAsString()).contains("La capacidad debe ser un número entero mayor que 0");
+		assertThat(r.getContentAsString()).contains("\"capacidad\":\"minimo\"");
 	}
 
 	@Test

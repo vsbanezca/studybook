@@ -63,6 +63,55 @@ describe('IniciarSesionComponent', () => {
     expect(el.textContent).not.toContain('Cancelar');
   });
 
+  describe('validacion interactiva', () => {
+    const error = (id: string) => el.querySelector(`#${id}-error`)?.textContent?.trim() ?? '';
+    const salir = async (id: string) => {
+      campo(id).dispatchEvent(new Event('blur'));
+      await fixture.whenStable();
+    };
+
+    it('un campo intacto no muestra error', () => {
+      expect(error('correo')).toBe('');
+      expect(error('clave')).toBe('');
+      expect(campo('correo').getAttribute('aria-invalid')).toBeNull();
+    });
+
+    it('el correo vacio o sin formato da error al salir y se corrige tecla a tecla', async () => {
+      await salir('correo');
+      expect(error('correo')).toBe('El correo es obligatorio');
+      expect(campo('correo').getAttribute('aria-invalid')).toBe('true');
+      escribir('correo', 'ana@');
+      await fixture.whenStable();
+      expect(error('correo')).toContain('formato de correo electrónico');
+      escribir('correo', 'ana@ucab.edu.ve');
+      await fixture.whenStable();
+      expect(error('correo')).toBe('');
+      expect(campo('correo').getAttribute('aria-invalid')).toBeNull();
+    });
+
+    it('no valida el dominio institucional ni el largo de la contrasena', async () => {
+      escribir('correo', 'cualquiera@gmail.com');
+      escribir('clave', 'x');
+      await salir('correo');
+      await salir('clave');
+      expect(error('correo')).toBe('');
+      expect(error('clave')).toBe('');
+    });
+
+    it('la contrasena vacia da «obligatoria» al salir del campo', async () => {
+      await salir('clave');
+      expect(error('clave')).toBe('La contraseña es obligatoria');
+    });
+
+    it('presionar con campos intactos los marca todos y conserva el modal literal', async () => {
+      enviar();
+      await fixture.whenStable();
+      expect(error('correo')).not.toBe('');
+      expect(error('clave')).not.toBe('');
+      expect(modal()?.textContent).toContain('Datos proporcionados incorrectos');
+    });
+  });
+
   it('con datos invalidos muestra el error con Aceptar y no llama al servidor', async () => {
     enviar();
     await fixture.whenStable();

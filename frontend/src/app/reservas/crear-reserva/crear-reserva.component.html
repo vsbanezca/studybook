@@ -16,53 +16,35 @@
             (seleccionar)="elegir($event)" />
         }
       </div>
-      @if (errorDe('espacioId')) {
-        <span class="sb-error-texto" id="espacioId-error"><sb-icon nombre="circle-alert" />{{ errorDe('espacioId') }}</span>
-      }
+      <sb-field-error idMensaje="espacioId-error" [control]="form.controls.espacioId" [mensajes]="mensajes.espacioId" />
     </section>
 
-    <form (ngSubmit)="reservar()" novalidate>
+    <form [formGroup]="form" (ngSubmit)="reservar()" novalidate>
       <h2 class="sb-titulo-seccion">Datos de la reserva</h2>
 
       <div class="grupo-campo sb-campo">
         <label for="fecha" class="sb-etiqueta">Fecha</label>
-        <input type="date" id="fecha" name="fecha" [min]="minimoFecha" [(ngModel)]="datos.fecha" class="sb-input"
-          [attr.aria-invalid]="errorDe('fecha') ? 'true' : null"
-          [attr.aria-describedby]="errorDe('fecha') ? 'fecha-error' : null">
-        @if (errorDe('fecha')) {
-          <span class="sb-error-texto" id="fecha-error"><sb-icon nombre="circle-alert" />{{ errorDe('fecha') }}</span>
-        }
+        <input type="date" id="fecha" formControlName="fecha" [min]="minimoFecha" class="sb-input" [sbCampo]="form.controls.fecha">
+        <sb-field-error idMensaje="fecha-error" [control]="form.controls.fecha" [mensajes]="mensajes.fecha" />
       </div>
 
       <div class="fila-horas">
         <div class="grupo-campo sb-campo">
           <label for="horaInicio" class="sb-etiqueta">Hora de inicio</label>
-          <input type="time" id="horaInicio" name="horaInicio" [(ngModel)]="datos.horaInicio" class="sb-input"
-            [attr.aria-invalid]="errorDe('horaInicio') ? 'true' : null"
-            [attr.aria-describedby]="errorDe('horaInicio') ? 'horaInicio-error' : null">
-          @if (errorDe('horaInicio')) {
-            <span class="sb-error-texto" id="horaInicio-error"><sb-icon nombre="circle-alert" />{{ errorDe('horaInicio') }}</span>
-          }
+          <input type="time" id="horaInicio" formControlName="horaInicio" class="sb-input" [sbCampo]="form.controls.horaInicio">
+          <sb-field-error idMensaje="horaInicio-error" [control]="form.controls.horaInicio" [mensajes]="mensajes.horaInicio" />
         </div>
         <div class="grupo-campo sb-campo">
           <label for="horaFin" class="sb-etiqueta">Hora de fin</label>
-          <input type="time" id="horaFin" name="horaFin" [(ngModel)]="datos.horaFin" class="sb-input"
-            [attr.aria-invalid]="errorDe('horaFin') ? 'true' : null"
-            [attr.aria-describedby]="errorDe('horaFin') ? 'horaFin-error' : null">
-          @if (errorDe('horaFin')) {
-            <span class="sb-error-texto" id="horaFin-error"><sb-icon nombre="circle-alert" />{{ errorDe('horaFin') }}</span>
-          }
+          <input type="time" id="horaFin" formControlName="horaFin" class="sb-input" [sbCampo]="form.controls.horaFin">
+          <sb-field-error idMensaje="horaFin-error" [control]="form.controls.horaFin" [mensajes]="mensajes.horaFin" />
         </div>
       </div>
 
       <div class="grupo-campo sb-campo">
         <label for="asistentes" class="sb-etiqueta">Cantidad de asistentes</label>
-        <input type="number" id="asistentes" name="asistentes" min="1" step="1" [(ngModel)]="datos.asistentes" class="sb-input"
-          [attr.aria-invalid]="errorDe('asistentes') ? 'true' : null"
-          [attr.aria-describedby]="errorDe('asistentes') ? 'asistentes-error' : null">
-        @if (errorDe('asistentes')) {
-          <span class="sb-error-texto" id="asistentes-error"><sb-icon nombre="circle-alert" />{{ errorDe('asistentes') }}</span>
-        }
+        <input type="number" id="asistentes" formControlName="asistentes" min="1" step="1" class="sb-input" [sbCampo]="form.controls.asistentes">
+        <sb-field-error idMensaje="asistentes-error" [control]="form.controls.asistentes" [mensajes]="mensajes.asistentes" />
       </div>
 
       <div class="acciones-formulario">

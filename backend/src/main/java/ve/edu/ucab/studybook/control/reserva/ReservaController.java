@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import ve.edu.ucab.studybook.control.seguridad.SesionService;
 
 /** Solo el Miembro usa estas rutas (el AutorizacionInterceptor responde 403 al Administrador). */
@@ -29,7 +30,7 @@ public class ReservaController {
 
 	/** Aplica las reglas de validacion, capacidad y disponibilidad. No guarda nada. */
 	@PostMapping("/validar")
-	public Map<String, Boolean> validar(@RequestBody ReservaRequest peticion) {
+	public Map<String, Boolean> validar(@Valid @RequestBody ReservaRequest peticion) {
 		servicio.validar(peticion);
 		return Map.of("valida", true);
 	}
@@ -37,7 +38,7 @@ public class ReservaController {
 	/** Tras el «Si» del miembro: revalida todo y registra. El miembro sale de la sesion, nunca del cuerpo. */
 	@PostMapping
 	@ResponseStatus(HttpStatus.CREATED)
-	public ReservaResponse crear(@RequestBody ReservaRequest peticion, HttpServletRequest request) {
+	public ReservaResponse crear(@Valid @RequestBody ReservaRequest peticion, HttpServletRequest request) {
 		return servicio.crear(peticion, sesiones.actual(request).correo());
 	}
 

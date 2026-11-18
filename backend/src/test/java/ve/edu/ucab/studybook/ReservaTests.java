@@ -170,41 +170,41 @@ class ReservaTests {
 
 	@Test
 	void cadaCampoObligatorioVacioDa400IndicandoElCampo() throws Exception {
-		esperaRechazoDeCampo(json(null, fecha, "14:00", "15:00", 2), "espacioId", "Este campo es obligatorio.");
-		esperaRechazoDeCampo(json(espacioId, null, "14:00", "15:00", 2), "fecha", "Este campo es obligatorio.");
-		esperaRechazoDeCampo(json(espacioId, fecha, "", "15:00", 2), "horaInicio", "Este campo es obligatorio.");
-		esperaRechazoDeCampo(json(espacioId, fecha, "14:00", " ", 2), "horaFin", "Este campo es obligatorio.");
-		esperaRechazoDeCampo(json(espacioId, fecha, "14:00", "15:00", null), "asistentes", "Este campo es obligatorio.");
+		esperaRechazoDeCampo(json(null, fecha, "14:00", "15:00", 2), "espacioId", "obligatorio");
+		esperaRechazoDeCampo(json(espacioId, null, "14:00", "15:00", 2), "fecha", "obligatorio");
+		esperaRechazoDeCampo(json(espacioId, fecha, "", "15:00", 2), "horaInicio", "obligatorio");
+		esperaRechazoDeCampo(json(espacioId, fecha, "14:00", " ", 2), "horaFin", "obligatorio");
+		esperaRechazoDeCampo(json(espacioId, fecha, "14:00", "15:00", null), "asistentes", "obligatorio");
 	}
 
 	@Test
 	void laFechaNoPuedeEstarEnElPasado() throws Exception {
-		esperaRechazoDeCampo(json(espacioId, LocalDate.now().minusDays(1), "14:00", "15:00", 2), "fecha", "no puede estar en el pasado");
+		esperaRechazoDeCampo(json(espacioId, LocalDate.now().minusDays(1), "14:00", "15:00", 2), "fecha", "fecha_pasada");
 	}
 
 	@Test
 	void unaFechaConFormatoInvalidoSeRechaza() throws Exception {
-		esperaRechazoDeCampo(json(espacioId, "15/11/2026", "14:00", "15:00", 2), "fecha", "La fecha no es válida");
+		esperaRechazoDeCampo(json(espacioId, "15/11/2026", "14:00", "15:00", 2), "fecha", "formato");
 	}
 
 	@Test
 	void laHoraDeFinDebeSerPosteriorALaDeInicio() throws Exception {
-		esperaRechazoDeCampo(valida("15:00", "15:00"), "horaFin", "posterior a la hora de inicio");
-		esperaRechazoDeCampo(valida("16:00", "15:00"), "horaFin", "posterior a la hora de inicio");
+		esperaRechazoDeCampo(valida("15:00", "15:00"), "horaFin", "fin_no_posterior");
+		esperaRechazoDeCampo(valida("16:00", "15:00"), "horaFin", "fin_no_posterior");
 	}
 
 	@Test
 	void unaHoraConFormatoInvalidoSeRechaza() throws Exception {
-		esperaRechazoDeCampo(json(espacioId, fecha, "tarde", "15:00", 2), "horaInicio", "La hora no es válida");
+		esperaRechazoDeCampo(json(espacioId, fecha, "tarde", "15:00", 2), "horaInicio", "formato");
 	}
 
 	@Test
 	void losAsistentesDebenSerUnEnteroMayorOIgualA1() throws Exception {
-		String mensaje = "número entero mayor o igual a 1";
-		esperaRechazoDeCampo(json(espacioId, fecha, "14:00", "15:00", 0), "asistentes", mensaje);
-		esperaRechazoDeCampo(json(espacioId, fecha, "14:00", "15:00", -3), "asistentes", mensaje);
-		esperaRechazoDeCampo(json(espacioId, fecha, "14:00", "15:00", "\"abc\"").replace("\"\\\"abc\\\"\"", "\"abc\""), "asistentes", mensaje);
-		esperaRechazoDeCampo(json(espacioId, fecha, "14:00", "15:00", "\"2.5\"").replace("\"\\\"2.5\\\"\"", "\"2.5\""), "asistentes", mensaje);
+		// Red de seguridad: un entero menor que 1 da "minimo"; algo que no es entero da "formato".
+		esperaRechazoDeCampo(json(espacioId, fecha, "14:00", "15:00", 0), "asistentes", "minimo");
+		esperaRechazoDeCampo(json(espacioId, fecha, "14:00", "15:00", -3), "asistentes", "minimo");
+		esperaRechazoDeCampo(json(espacioId, fecha, "14:00", "15:00", "\"abc\"").replace("\"\\\"abc\\\"\"", "\"abc\""), "asistentes", "formato");
+		esperaRechazoDeCampo(json(espacioId, fecha, "14:00", "15:00", "\"2.5\"").replace("\"\\\"2.5\\\"\"", "\"2.5\""), "asistentes", "formato");
 	}
 
 	@Test

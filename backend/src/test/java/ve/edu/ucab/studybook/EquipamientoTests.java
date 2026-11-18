@@ -165,7 +165,7 @@ class EquipamientoTests {
 			MvcResult r = crear(admin, caso[1]);
 			assertThat(r.getResponse().getStatus()).as(caso[0]).isEqualTo(400);
 			assertThat(r.getResponse().getContentAsString()).as(caso[0]).contains("\"" + caso[0] + "\"")
-					.contains("Este campo es obligatorio.");
+					.contains("obligatorio");
 		}
 	}
 
@@ -217,7 +217,7 @@ class EquipamientoTests {
 			assertThat(r.getResponse().getContentAsString()).as(mala).contains("\"cantidad\"");
 		}
 		assertThat(crear(admin, cuerpo("Silla", "Mobiliario", "Silla", "Disponible", "0", espacioId)).getResponse().getContentAsString())
-				.contains("La cantidad debe ser un número entero mayor o igual a 1");
+				.contains("\"cantidad\":\"minimo\"");
 		assertThat(equipamientos.listarPorEspacio(espacioId)).isEmpty();
 	}
 

@@ -10,10 +10,7 @@ import ve.edu.ucab.studybook.model.Espacio;
 @Service
 public class EspacioService {
 
-	// Textos de frontend/src/app/compartido/messages.ts
-	static final String CAMPO_OBLIGATORIO = "Este campo es obligatorio.";
-	static final String CAPACIDAD_INVALIDA = "La capacidad debe ser un número entero mayor que 0";
-
+	// Depende de lo guardado: lo decide el servidor y el frontend lo muestra tal cual.
 	static final String ESPACIO_REPETIDO = "Ya existe un espacio con ese nombre en esa ubicación";
 
 	private final EspacioRepository repositorio;
@@ -26,23 +23,12 @@ public class EspacioService {
 		return repositorio.listar();
 	}
 
+	/** El formato ya lo valido Bean Validation en EspacioRequest. */
 	public Espacio crearEspacio(EspacioRequest request) {
-		String nombre = obligatorio(request.getNombre(), "nombre");
-		String ubicacion = obligatorio(request.getUbicacion(), "ubicacion");
-		String piso = obligatorio(request.getPiso(), "piso");
-		if (request.getCapacidad() < 1) {
-			throw new ValidacionException(CAPACIDAD_INVALIDA, "capacidad");
-		}
 		String descripcion = request.getDescripcion() == null ? "" : request.getDescripcion().trim();
 		return repositorio
-				.guardarSiNoExiste(new Espacio(null, nombre, ubicacion, piso, descripcion, request.getCapacidad()))
-				.orElseThrow(() -> new ValidacionException(ESPACIO_REPETIDO));
-	}
-
-	private static String obligatorio(String valor, String campo) {
-		if (valor == null || valor.isBlank()) {
-			throw new ValidacionException(CAMPO_OBLIGATORIO, campo);
-		}
-		return valor.trim();
+				.guardarSiNoExiste(new Espacio(null, request.getNombre().trim(), request.getUbicacion().trim(),
+						request.getPiso().trim(), descripcion, request.getCapacidad()))
+				.orElseThrow(() -> ValidacionException.literal(ESPACIO_REPETIDO, "nombre"));
 	}
 }
