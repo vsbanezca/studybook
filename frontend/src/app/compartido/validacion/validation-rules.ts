@@ -6,6 +6,13 @@ export const FORMATO_CORREO = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export const SOLO_DIGITOS = /^\d+$/;
 
+/**
+ * Telefono ya normalizado (sin espacios, guiones ni parentesis): + opcional al inicio y de 10 a 15 digitos.
+ * La misma regla que el servidor (Telefono.java y @TelefonoValido en RegistroRequest).
+ * SUPOSICION: el formato (10 a 15 digitos) se confirma con el equipo y la profesora.
+ */
+export const FORMATO_TELEFONO = /^\+?\d{10,15}$/;
+
 export const REGLAS = {
   clave: {
     minimo: 8,

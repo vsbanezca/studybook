@@ -1,7 +1,8 @@
 import { DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
-import { FORMATO_CORREO, REGLAS, SOLO_DIGITOS } from './validation-rules';
+import { normalizarTelefono } from '../telefono';
+import { FORMATO_CORREO, FORMATO_TELEFONO, REGLAS, SOLO_DIGITOS } from './validation-rules';
 
 // Validadores reutilizables. Todos dejan pasar el valor vacio (eso lo decide `obligatorio`) y devuelven
 // una clave de error que el catalogo validation-messages.ts traduce a texto.
@@ -51,6 +52,18 @@ export const dominioInstitucional: ValidatorFn = (control) => {
 export const soloDigitos: ValidatorFn = (control) => {
   if (estaVacio(control.value)) return null;
   return SOLO_DIGITOS.test(String(control.value).trim()) ? null : { digitos: true };
+};
+
+/** Verdadero si el telefono, una vez normalizado (sin espacios, guiones ni parentesis), cumple el formato. */
+export function telefonoValido(valor: string | null | undefined): boolean {
+  return FORMATO_TELEFONO.test(normalizarTelefono(valor));
+}
+
+/** Formato de telefono. Un valor vacio lo deja a `obligatorio`. Clave: `telefono`. */
+export const telefonoValidator: ValidatorFn = (control) => {
+  const valor = control.value as string | null;
+  if (!valor || normalizarTelefono(valor) === '') return null;
+  return telefonoValido(valor) ? null : { telefono: true };
 };
 
 /** Largo minimo en caracteres, sin recortar espacios (sirve para contrasenas). Clave: `minlength`. */

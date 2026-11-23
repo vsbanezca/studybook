@@ -5,7 +5,7 @@ import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { DialogoMensajeComponent, opcionesDialogoMensaje } from '../../compartido/dialogo-mensaje/dialogo-mensaje.component';
 import { MSG } from '../../compartido/messages';
-import { normalizarTelefono, telefonoValidator } from '../../compartido/telefono';
+import { normalizarTelefono } from '../../compartido/telefono';
 import { DatoConfirmacion, SbConfirmDialogComponent } from '../../compartido/ui/sb-confirm-dialog/sb-confirm-dialog.component';
 import { SbCampoDirective, SbFieldErrorComponent } from '../../compartido/ui/sb-field-error/sb-field-error.component';
 import { SbIconComponent } from '../../compartido/ui/sb-icon/sb-icon.component';
@@ -14,7 +14,7 @@ import { SbWordmarkComponent } from '../../compartido/ui/sb-wordmark/sb-wordmark
 import { Mensajes, listarErrores, textoDeCodigo } from '../../compartido/validacion/validation-messages';
 import { REGLAS } from '../../compartido/validacion/validation-rules';
 import {
-  bytesMaximos, correoValido, dominioInstitucional, largoMinimo, marcarErrorServidor, obligatorio, soloDigitos,
+  bytesMaximos, correoValido, dominioInstitucional, largoMinimo, marcarErrorServidor, obligatorio, soloDigitos, telefonoValidator,
 } from '../../compartido/validacion/validators';
 import { CuentaService } from '../cuenta.service';
 

@@ -4,6 +4,7 @@ import { FormControl, FormGroup } from '@angular/forms';
 import {
   ahoraEnZona, bytesMaximos, correoValido, dentroDeCapacidad, dominioInstitucional, enteroMinimo, fechaNoPasada,
   horaFinPosterior, horaInicioNoPasada, largoMinimo, marcarErrorServidor, mostrarError, obligatorio, revalidarAlCambiar, soloDigitos,
+  telefonoValidator, telefonoValido,
 } from './validators';
 
 const control = (valor: unknown) => new FormControl(valor);
@@ -141,6 +142,24 @@ describe('validadores reutilizables', () => {
     expect(mostrarError(c)).toBe(true);
     c.setValue('otra@ucab.edu.ve');
     expect(c.valid).toBe(true);
+  });
+});
+
+describe('telefono', () => {
+  it('valida el valor ya normalizado', () => {
+    expect(telefonoValido('0412-123 4567')).toBe(true);
+    expect(telefonoValido('+58 412 1234567')).toBe(true);
+    expect(telefonoValido('(0412) 1234567')).toBe(true);
+    expect(telefonoValido('0412-123a567')).toBe(false);
+    expect(telefonoValido('0412 123')).toBe(false);
+    expect(telefonoValido('1234567890123456')).toBe(false);
+    expect(telefonoValido('')).toBe(false);
+  });
+
+  it('el validador deja el vacío a obligatorio y marca el formato con la clave telefono', () => {
+    expect(telefonoValidator(control(''))).toBeNull();
+    expect(telefonoValidator(control('0412-123 4567'))).toBeNull();
+    expect(telefonoValidator(control('abc'))).toEqual({ telefono: true });
   });
 });
 
