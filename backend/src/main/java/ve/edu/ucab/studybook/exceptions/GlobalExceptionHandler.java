@@ -10,6 +10,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -46,6 +47,16 @@ public class GlobalExceptionHandler {
 			campos.put(mismatch.getPath().get(0).getPropertyName(), CodigosValidacion.FORMATO);
 		}
 		return ResponseEntity.badRequest().body(new ErrorResponse(DATOS_INCORRECTOS, campos));
+	}
+
+	/**
+	 * Un parametro de la URL con un tipo que no corresponde (por ejemplo, espacioId=abc donde va un numero): 400 con
+	 * el nombre del parametro y el codigo "formato", igual que un campo del cuerpo.
+	 */
+	@ExceptionHandler(MethodArgumentTypeMismatchException.class)
+	public ResponseEntity<ErrorResponse> parametroConTipoInvalido(MethodArgumentTypeMismatchException ex) {
+		return ResponseEntity.badRequest()
+				.body(new ErrorResponse(DATOS_INCORRECTOS, Map.of(ex.getName(), CodigosValidacion.FORMATO)));
 	}
 
 	@ExceptionHandler(ValidacionException.class)

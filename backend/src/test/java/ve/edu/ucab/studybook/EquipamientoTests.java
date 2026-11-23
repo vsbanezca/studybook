@@ -177,6 +177,14 @@ class EquipamientoTests {
 	}
 
 	@Test
+	void unEspacioIdQueNoEsNumeroAlConsultarDa400ConElCampoYElCodigoFormato() throws Exception {
+		MvcResult r = mvc.perform(get("/api/equipamientos").param("espacioId", "abc").session(admin)).andReturn();
+		assertThat(r.getResponse().getStatus()).isEqualTo(400);
+		assertThat(r.getResponse().getContentAsString()).contains("Datos proporcionados incorrectos")
+				.contains("\"espacioId\":\"formato\"");
+	}
+
+	@Test
 	void unEspacioInexistenteAlConsultarDa404ConUnMensajeClaro() throws Exception {
 		MvcResult r = listar(admin, 987654L);
 		assertThat(r.getResponse().getStatus()).isEqualTo(404);
