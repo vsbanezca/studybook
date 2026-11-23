@@ -8,7 +8,7 @@ import { MSG } from '../../compartido/messages';
 import { DatoConfirmacion, SbConfirmDialogComponent } from '../../compartido/ui/sb-confirm-dialog/sb-confirm-dialog.component';
 import { SbCampoDirective, SbFieldErrorComponent } from '../../compartido/ui/sb-field-error/sb-field-error.component';
 import { SbMessageComponent } from '../../compartido/ui/sb-message/sb-message.component';
-import { Mensajes, listarErrores, textoDeCodigo } from '../../compartido/validacion/validation-messages';
+import { Mensajes, listarErrores, textoDeCodigo, textoDeMensaje } from '../../compartido/validacion/validation-messages';
 import { enteroMinimo, marcarErrorServidor, obligatorio } from '../../compartido/validacion/validators';
 import { Espacio } from '../espacio.model';
 import { EspacioService } from '../espacio.service';
@@ -110,7 +110,7 @@ export class CrearEspacioComponent {
     this.router.navigateByUrl('/espacios');
   }
 
-  /** Modal con el texto del servidor y, si el error es de un campo, tambien marcado en ese campo. */
+  /** Modal con el texto que corresponde al codigo del servidor y, si el error es de un campo, tambien marcado en ese campo. */
   private alFallar(error: unknown): void {
     const http = error instanceof HttpErrorResponse ? error : null;
     let titulo: string = MSG.comunes.errorServidor;
@@ -119,7 +119,7 @@ export class CrearEspacioComponent {
     if (http?.status === 403) {
       titulo = MSG.espacio.sinPermiso;
     } else if (http?.status === 400) {
-      titulo = http.error?.mensaje ?? MSG.comunes.datosInvalidos;
+      titulo = textoDeMensaje(http.error?.mensaje);
       const campos = (http.error?.campos ?? {}) as Record<string, string>;
       const lista: string[] = [];
       for (const [campo, valor] of Object.entries(campos)) {

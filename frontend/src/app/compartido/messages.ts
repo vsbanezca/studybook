@@ -23,7 +23,7 @@ export const MSG = {
     confirmar:         '¿Confirmas el registro?',                                 // PROPUESTA
     credencialesMal:   'Correo o contraseña incorrectos',                        // LITERAL
     correoObligatorio: 'El correo es obligatorio',                                // PROPUESTA
-    correoNoInstitucional: 'Usa tu correo institucional',                         // PROPUESTA (mismo texto del servidor)
+    correoNoInstitucional: 'Usa tu correo institucional',                         // PROPUESTA
     correoFormato:     'El correo debe tener formato de correo electrónico',                    // PROPUESTA
     claveObligatoria:  'La contraseña es obligatoria',                            // PROPUESTA
     nombreObligatorio: 'El nombre es obligatorio',                                // PROPUESTA
@@ -56,5 +56,6 @@ export const MSG = {
     datosInvalidos:   'Datos proporcionados incorrectos',                         // LITERAL
     errorServidor:    'No se pudo conectar con el servidor. Inténtalo de nuevo.',  // PROPUESTA
     errorCarga:       'No se pudo cargar la información. Inténtalo de nuevo.',     // PROPUESTA
+    sesionRequerida:  'Debes iniciar sesión',                                     // PROPUESTA
   },
 } as const;

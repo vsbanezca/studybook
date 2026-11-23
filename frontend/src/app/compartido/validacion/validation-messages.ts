@@ -2,9 +2,9 @@ import { FormGroup, ValidationErrors } from '@angular/forms';
 import { MSG } from '../messages';
 import { REGLAS } from './validation-rules';
 
-// Catalogo de mensajes por campo. Los textos viven en messages.ts (una sola fuente); aqui solo se decide
-// cual texto corresponde a cada clave de error. Los mensajes amigables viven en el frontend: el servidor
-// responde con el campo y un codigo estable (ver textoDeCodigo).
+// Catalogo de mensajes. Los textos viven en messages.ts (una sola fuente); aqui solo se decide cual texto
+// corresponde a cada clave de error del formulario y a cada codigo del servidor. El servidor no redacta textos:
+// responde codigos estables (ver textoDeCodigo y textoDeMensaje).
 
 /** Textos que una pantalla cambia para un campo concreto, por clave de error. */
 export type Mensajes = Partial<Record<string, string>>;
@@ -64,8 +64,23 @@ export function listarErrores(grupo: FormGroup, etiquetas: Record<string, string
     }));
 }
 
-// Codigos de error del servidor (red de seguridad de Bean Validation y reglas del reloj del servidor).
+// Codigos de error del servidor (backend/.../exceptions/CodigosValidacion.java). El servidor nunca manda textos:
+// en "mensaje" manda el codigo general y en "campos" el codigo de cada campo. Este es el unico traductor.
 const TEXTOS_POR_CODIGO: Record<string, string> = {
+  // Generales (van en "mensaje")
+  datos_invalidos: MSG.comunes.datosInvalidos,
+  sin_permiso: MSG.espacio.sinPermiso,
+  sesion_requerida: MSG.comunes.sesionRequerida,
+  credenciales_incorrectas: MSG.cuenta.credencialesMal,
+  // Reglas de negocio (dependen de lo guardado; las decide el servidor)
+  correo_registrado: MSG.cuenta.correoRegistrado,
+  cedula_registrada: MSG.cuenta.cedulaRegistrada,
+  espacio_repetido: MSG.espacio.repetido,
+  espacio_no_existe: MSG.equipamiento.espacioNoExiste,
+  equipamiento_repetido: MSG.equipamiento.repetido,
+  capacidad_excedida: MSG.reserva.capacidadExcedida,
+  no_disponible: MSG.reserva.noDisponible,
+  // Formato (Bean Validation y reglas del reloj del servidor)
   obligatorio: MSG.comunes.campoObligatorio,
   formato: 'El formato no es válido',
   minimo: `Ingresa un número entero mayor o igual a ${REGLAS.enteroMinimo}`,
@@ -90,9 +105,17 @@ const TEXTOS_POR_CAMPO: Record<string, string> = {
 };
 
 /**
- * Convierte lo que el servidor responde para un campo en texto. Si es un codigo conocido, devuelve el texto
- * del catalogo; si no (por ejemplo «Ya existe una cuenta con ese correo», literal del servidor), lo deja igual.
+ * Convierte el codigo que el servidor responde para un campo en texto: primero el texto propio del campo
+ * (`campo.codigo`), luego el del codigo. Un codigo desconocido muestra el texto generico de datos invalidos.
  */
-export function textoDeCodigo(campo: string, valor: string): string {
-  return TEXTOS_POR_CAMPO[`${campo}.${valor}`] ?? TEXTOS_POR_CODIGO[valor] ?? valor;
+export function textoDeCodigo(campo: string, codigo: string): string {
+  return TEXTOS_POR_CAMPO[`${campo}.${codigo}`] ?? TEXTOS_POR_CODIGO[codigo] ?? MSG.comunes.datosInvalidos;
+}
+
+/**
+ * Convierte el codigo general de una respuesta de error ("mensaje") en el titulo del modal. Sin codigo o con uno
+ * desconocido devuelve el texto generico de datos invalidos.
+ */
+export function textoDeMensaje(codigo: string | null | undefined): string {
+  return (codigo ? TEXTOS_POR_CODIGO[codigo] : undefined) ?? MSG.comunes.datosInvalidos;
 }

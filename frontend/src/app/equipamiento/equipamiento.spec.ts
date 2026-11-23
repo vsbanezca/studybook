@@ -117,7 +117,7 @@ describe('ConsultarEquipamientoComponent', () => {
     const { fixture, http } = montar(ConsultarEquipamientoComponent, 'MIEMBRO');
     fixture.detectChanges();
     http.expectOne('/api/espacios').flush([SALA]);
-    http.expectOne('/api/equipamientos?espacioId=1').flush({ mensaje: 'El espacio indicado no existe' }, { status: 404, statusText: 'Not Found' });
+    http.expectOne('/api/equipamientos?espacioId=1').flush({ mensaje: 'espacio_no_existe' }, { status: 404, statusText: 'Not Found' });
     await fixture.whenStable();
     expect(mensaje()?.textContent).toContain('El espacio indicado no existe');
     expect(mensaje()?.querySelector('button')?.textContent).toContain('Aceptar');
@@ -236,7 +236,7 @@ describe('CrearEquipamientoComponent', () => {
       await enviar(fixture, el);
       botonesConfirmar()[1].click();
       http.expectOne('/api/equipamientos').flush(
-        { mensaje: 'Ya existe ese equipamiento en este espacio', campos: { nombre: 'Ya existe ese equipamiento en este espacio' } },
+        { mensaje: 'equipamiento_repetido', campos: { nombre: 'equipamiento_repetido' } },
         { status: 400, statusText: 'Bad Request' },
       );
       await fixture.whenStable();
@@ -310,7 +310,7 @@ describe('CrearEquipamientoComponent', () => {
     await enviar(fixture, el);
     botonesConfirmar()[1].click();
     http.expectOne('/api/equipamientos').flush(
-      { mensaje: 'Ya existe ese equipamiento en este espacio', campos: {} },
+      { mensaje: 'equipamiento_repetido', campos: {} },
       { status: 400, statusText: 'Bad Request' },
     );
     await fixture.whenStable();
@@ -337,7 +337,7 @@ describe('CrearEquipamientoComponent', () => {
     await enviar(fixture, el);
     botonesConfirmar()[1].click();
     http.expectOne('/api/equipamientos').flush(
-      { mensaje: 'Datos proporcionados incorrectos', campos: { espacioId: 'El espacio indicado no existe' } },
+      { mensaje: 'datos_invalidos', campos: { espacioId: 'espacio_no_existe' } },
       { status: 400, statusText: 'Bad Request' },
     );
     await fixture.whenStable();

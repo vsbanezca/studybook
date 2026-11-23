@@ -55,7 +55,7 @@ describe('App: cerrar sesion', () => {
   it('aunque el servidor falle o ya no reconozca la sesion, igual sale a Iniciar sesión', async () => {
     const sesion = TestBed.inject(SesionService);
     await abrirMenuYCerrar(fixture());
-    http.expectOne('/api/auth/logout').flush({ mensaje: 'Debes iniciar sesión', campos: {} }, { status: 401, statusText: 'Unauthorized' });
+    http.expectOne('/api/auth/logout').flush({ mensaje: 'sesion_requerida', campos: {} }, { status: 401, statusText: 'Unauthorized' });
     await fixture().whenStable();
     expect(sesion.autenticado()).toBe(false);
     expect(navegar).toHaveBeenCalledWith('/iniciar-sesion');

@@ -164,7 +164,7 @@ describe('CrearReservaComponent: validacion', () => {
     llenar({ asistentes: '4' });
     await reservar();
     http.expectOne('/api/reservas/validar').flush(
-      { mensaje: 'La cantidad de asistentes supera la capacidad del espacio', campos: { asistentes: 'La cantidad de asistentes supera la capacidad del espacio' } },
+      { mensaje: 'capacidad_excedida', campos: { asistentes: 'capacidad_excedida' } },
       { status: 400, statusText: 'Bad Request' },
     );
     await new Promise((r) => setTimeout(r));
@@ -180,7 +180,7 @@ describe('CrearReservaComponent: validacion', () => {
     llenar();
     await reservar();
     http.expectOne('/api/reservas/validar').flush(
-      { mensaje: 'El espacio ya está reservado en esa fecha y horario', campos: { fecha: 'x' } },
+      { mensaje: 'no_disponible', campos: { fecha: 'no_disponible' } },
       { status: 409, statusText: 'Conflict' },
     );
     await new Promise((r) => setTimeout(r));
@@ -207,7 +207,7 @@ describe('CrearReservaComponent: validacion', () => {
     llenar();
     await reservar();
     http.expectOne('/api/reservas/validar').flush(
-      { mensaje: 'Datos proporcionados incorrectos', campos: { horaInicio: 'hora_inicio_pasada' } },
+      { mensaje: 'datos_invalidos', campos: { horaInicio: 'hora_inicio_pasada' } },
       { status: 400, statusText: 'Bad Request' },
     );
     await new Promise((r) => setTimeout(r));
@@ -223,12 +223,12 @@ describe('CrearReservaComponent: validacion', () => {
     llenar();
     await reservar();
     http.expectOne('/api/reservas/validar').flush(
-      { mensaje: 'Datos proporcionados incorrectos', campos: { horaFin: 'La hora no es válida' } },
+      { mensaje: 'datos_invalidos', campos: { horaFin: 'formato' } },
       { status: 400, statusText: 'Bad Request' },
     );
     await new Promise((r) => setTimeout(r));
     expect(mensaje()?.textContent).toContain('Datos proporcionados incorrectos');
-    expect(mensaje()?.textContent).toContain('Hora de fin: La hora no es válida');
+    expect(mensaje()?.textContent).toContain('Hora de fin: El formato no es válido');
   });
 });
 
@@ -325,7 +325,7 @@ describe('CrearReservaComponent: validacion interactiva', () => {
     llenar();
     await reservar();
     http.expectOne('/api/reservas/validar').flush(
-      { mensaje: 'El espacio ya está reservado en esa fecha y horario', campos: { fecha: 'El espacio ya está reservado en esa fecha y horario' } },
+      { mensaje: 'no_disponible', campos: { fecha: 'no_disponible' } },
       { status: 409, statusText: 'Conflict' },
     );
     await new Promise((r) => setTimeout(r));
@@ -407,7 +407,7 @@ describe('CrearReservaComponent: confirmacion', () => {
     const { http, fixture, aceptarMensaje } = await hastaConfirmar();
     botonesConfirmar()[1].click();
     http.expectOne('/api/reservas').flush(
-      { mensaje: 'El espacio ya está reservado en esa fecha y horario', campos: {} },
+      { mensaje: 'no_disponible', campos: {} },
       { status: 409, statusText: 'Conflict' },
     );
     await fixture.whenStable();

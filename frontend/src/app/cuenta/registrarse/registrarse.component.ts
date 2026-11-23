@@ -11,7 +11,7 @@ import { SbCampoDirective, SbFieldErrorComponent } from '../../compartido/ui/sb-
 import { SbIconComponent } from '../../compartido/ui/sb-icon/sb-icon.component';
 import { SbMessageComponent } from '../../compartido/ui/sb-message/sb-message.component';
 import { SbWordmarkComponent } from '../../compartido/ui/sb-wordmark/sb-wordmark.component';
-import { Mensajes, listarErrores, textoDeCodigo } from '../../compartido/validacion/validation-messages';
+import { Mensajes, listarErrores, textoDeCodigo, textoDeMensaje } from '../../compartido/validacion/validation-messages';
 import { REGLAS } from '../../compartido/validacion/validation-rules';
 import {
   bytesMaximos, correoValido, dominioInstitucional, largoMinimo, marcarErrorServidor, obligatorio, soloDigitos, telefonoValidator,
@@ -131,7 +131,7 @@ export class RegistrarseComponent {
     let detalle: string[] | undefined;
     let primero: Campo | null = null;
     if (http?.status === 400) {
-      titulo = http.error?.mensaje ?? MSG.comunes.datosInvalidos;
+      titulo = textoDeMensaje(http.error?.mensaje);
       const campos = (http.error?.campos ?? {}) as Record<string, string>;
       const lista: string[] = [];
       for (const [campo, valor] of Object.entries(campos)) {

@@ -8,7 +8,7 @@ import { MSG } from '../../compartido/messages';
 import { DatoConfirmacion, SbConfirmDialogComponent } from '../../compartido/ui/sb-confirm-dialog/sb-confirm-dialog.component';
 import { SbCampoDirective, SbFieldErrorComponent } from '../../compartido/ui/sb-field-error/sb-field-error.component';
 import { SbMessageComponent } from '../../compartido/ui/sb-message/sb-message.component';
-import { Mensajes, listarErrores, textoDeCodigo } from '../../compartido/validacion/validation-messages';
+import { Mensajes, listarErrores, textoDeCodigo, textoDeMensaje } from '../../compartido/validacion/validation-messages';
 import { enteroMinimo, marcarErrorServidor, obligatorio } from '../../compartido/validacion/validators';
 import { Espacio } from '../../espacios/espacio.model';
 import { EspacioService } from '../../espacios/espacio.service';
@@ -143,7 +143,7 @@ export class CrearEquipamientoComponent implements OnInit {
     if (http?.status === 403) {
       titulo = MSG.espacio.sinPermiso;
     } else if (http?.status === 400 || http?.status === 404) {
-      titulo = http.error?.mensaje ?? MSG.comunes.datosInvalidos;
+      titulo = textoDeMensaje(http.error?.mensaje);
       const campos = (http.error?.campos ?? {}) as Record<string, string>;
       const lista: string[] = [];
       for (const [campo, valor] of Object.entries(campos)) {
