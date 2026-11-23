@@ -1,27 +1,27 @@
 import { Dialog } from '@angular/cdk/dialog';
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { DialogoMensajeComponent, opcionesDialogoMensaje } from '../../compartido/dialogo-mensaje/dialogo-mensaje.component';
 import { formatearFechaLarga } from '../../compartido/formato-fecha';
 import { MSG } from '../../compartido/messages';
 import { DatoConfirmacion, SbConfirmDialogComponent } from '../../compartido/ui/sb-confirm-dialog/sb-confirm-dialog.component';
-import { SbIconComponent } from '../../compartido/ui/sb-icon/sb-icon.component';
+import { SbCampoDirective, SbFieldErrorComponent } from '../../compartido/ui/sb-field-error/sb-field-error.component';
 import { SbMessageComponent } from '../../compartido/ui/sb-message/sb-message.component';
 import { SbSpaceCardComponent } from '../../compartido/ui/sb-space-card/sb-space-card.component';
+import { Mensajes, listarErrores, textoDeCodigo } from '../../compartido/validacion/validation-messages';
+import {
+  ahoraEnZona, dentroDeCapacidad, enteroMinimo, fechaNoPasada, horaFinPosterior, horaInicioNoPasada, marcarErrorServidor,
+  obligatorio, revalidarAlCambiar,
+} from '../../compartido/validacion/validators';
 import { Espacio } from '../../espacios/espacio.model';
 import { EspacioService } from '../../espacios/espacio.service';
 import { SolicitudReserva } from '../reserva.model';
 import { ReservaService } from '../reserva.service';
 
 type Campo = 'espacioId' | 'fecha' | 'horaInicio' | 'horaFin' | 'asistentes';
-
-interface ErrorCampo {
-  campo: Campo;
-  etiqueta: string;
-  texto: string;
-}
 
 const ETIQUETAS: Record<Campo, string> = {
   espacioId: 'Espacio',
@@ -31,16 +31,17 @@ const ETIQUETAS: Record<Campo, string> = {
   asistentes: 'Asistentes',
 };
 
-/** Fecha de hoy como AAAA-MM-DD en la zona horaria del navegador. */
-function hoy(): string {
-  const d = new Date();
-  const dos = (n: number) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${dos(d.getMonth() + 1)}-${dos(d.getDate())}`;
-}
+const MENSAJES: Record<Campo, Mensajes> = {
+  espacioId: { required: MSG.reserva.espacioObligatorio },
+  fecha: {},
+  horaInicio: {},
+  horaFin: {},
+  asistentes: { entero: MSG.reserva.asistentesInvalidos },
+};
 
 @Component({
   selector: 'app-crear-reserva',
-  imports: [FormsModule, RouterLink, SbConfirmDialogComponent, SbIconComponent, SbMessageComponent, SbSpaceCardComponent],
+  imports: [ReactiveFormsModule, RouterLink, SbCampoDirective, SbConfirmDialogComponent, SbFieldErrorComponent, SbMessageComponent, SbSpaceCardComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './crear-reserva.component.html',
   styleUrl: './crear-reserva.component.css',
@@ -49,6 +50,8 @@ export class CrearReservaComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly dialog = inject(Dialog);
+  private readonly fb = inject(FormBuilder);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly espaciosApi = inject(EspacioService);
   private readonly reservasApi = inject(ReservaService);
 
@@ -56,10 +59,17 @@ export class CrearReservaComponent implements OnInit {
   protected readonly cargado = signal(false);
   protected readonly seleccionado = signal<Espacio | null>(null);
 
-  protected readonly datos = { fecha: '', horaInicio: '', horaFin: '', asistentes: null as number | null };
-  protected readonly minimoFecha = hoy();
+  /** `espacioId` guarda el espacio elegido (no solo el id) para que la capacidad llegue a los validadores. */
+  protected readonly form = this.fb.group({
+    espacioId: this.fb.control<Espacio | null>(null, obligatorio),
+    fecha: this.fb.nonNullable.control('', [obligatorio, fechaNoPasada()]),
+    horaInicio: this.fb.nonNullable.control('', [obligatorio, horaInicioNoPasada('fecha')]),
+    horaFin: this.fb.nonNullable.control('', [obligatorio, horaFinPosterior('horaInicio')]),
+    asistentes: this.fb.control<number | null>(null, [obligatorio, enteroMinimo(), dentroDeCapacidad('espacioId')]),
+  });
+  protected readonly mensajes = MENSAJES;
+  protected readonly minimoFecha = ahoraEnZona().fecha;
 
-  protected readonly intentado = signal(false);
   protected readonly enviando = signal(false);
   protected readonly confirmando = signal(false);
   protected readonly creada = signal(false);
@@ -67,6 +77,20 @@ export class CrearReservaComponent implements OnInit {
 
   protected readonly textoConfirmar = MSG.reserva.confirmar;
   protected readonly textoExito = MSG.reserva.creada;
+
+  constructor() {
+    const c = this.form.controls;
+    // Validacion entre campos: cada una se reevalua cuando cambia el campo del que depende.
+    revalidarAlCambiar(c.fecha, c.horaInicio, this.destroyRef);
+    revalidarAlCambiar(c.horaInicio, c.horaFin, this.destroyRef);
+    revalidarAlCambiar(c.espacioId, c.asistentes, this.destroyRef);
+    // Un rechazo del servidor (por ejemplo, disponibilidad) deja de valer en cuanto cambia cualquier dato.
+    this.form.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      Object.values(this.form.controls)
+        .filter((control) => control.hasError('servidor'))
+        .forEach((control) => control.updateValueAndValidity({ emitEvent: false }));
+    });
+  }
 
   ngOnInit(): void {
     this.espaciosApi.consultarEspacios().subscribe({
@@ -79,7 +103,9 @@ export class CrearReservaComponent implements OnInit {
         }
         this.espacios.set(lista);
         const id = Number(this.route.snapshot.queryParamMap.get('espacioId'));
-        this.seleccionado.set(lista.find((e) => e.id === id) ?? null);
+        const preseleccionado = lista.find((e) => e.id === id) ?? null;
+        this.seleccionado.set(preseleccionado);
+        this.form.controls.espacioId.setValue(preseleccionado);
       },
       error: () => {
         this.cargado.set(true);
@@ -90,48 +116,35 @@ export class CrearReservaComponent implements OnInit {
 
   protected elegir(espacio: Espacio): void {
     this.seleccionado.set(espacio);
-  }
-
-  /** Campos con error, en el orden del formulario. */
-  protected errores(): ErrorCampo[] {
-    const d = this.datos;
-    const obligatorio = MSG.comunes.campoObligatorio;
-    const lista: ErrorCampo[] = [];
-    const agregar = (campo: Campo, texto: string) => lista.push({ campo, etiqueta: ETIQUETAS[campo], texto });
-    if (!this.seleccionado()) agregar('espacioId', MSG.reserva.espacioObligatorio);
-    if (!d.fecha) agregar('fecha', obligatorio);
-    else if (d.fecha < hoy()) agregar('fecha', MSG.reserva.fechaPasada);
-    if (!d.horaInicio) agregar('horaInicio', obligatorio);
-    if (!d.horaFin) agregar('horaFin', obligatorio);
-    else if (d.horaInicio && d.horaFin <= d.horaInicio) agregar('horaFin', MSG.reserva.finNoPosterior);
-    if (d.asistentes === null || d.asistentes === undefined || (d.asistentes as unknown) === '') agregar('asistentes', obligatorio);
-    else if (!Number.isInteger(d.asistentes) || d.asistentes < 1) agregar('asistentes', MSG.reserva.asistentesInvalidos);
-    return lista;
-  }
-
-  protected errorDe(campo: Campo): string {
-    return this.intentado() ? (this.errores().find((x) => x.campo === campo)?.texto ?? '') : '';
+    this.form.controls.espacioId.setValue(espacio);
+    this.form.controls.espacioId.markAsTouched();
   }
 
   /** Reservar: valida en el cliente y en el servidor (datos, capacidad, disponibilidad) y pide confirmar. */
   protected reservar(): void {
     if (this.enviando() || this.confirmando()) return;
-    this.intentado.set(true);
-    const errores = this.errores();
+    // La hora actual cambia con el tiempo: se vuelve a evaluar todo antes de decidir.
+    Object.values(this.form.controls).forEach((control) => control.updateValueAndValidity({ emitEvent: false }));
+    this.form.markAllAsTouched();
+    const errores = listarErrores(this.form, ETIQUETAS, MENSAJES);
     if (errores.length > 0) {
-      const detalle = errores.map((x) => `${x.etiqueta}: ${x.texto}`);
-      this.avisar(MSG.comunes.datosInvalidos, detalle, () => this.enfocar(errores[0].campo));
+      const soloCapacidad = errores.length === 1 && this.form.controls.asistentes.hasError('capacidad');
+      // Paso 7 de la especificacion: la capacidad excedida tiene su propio mensaje literal.
+      const titulo = soloCapacidad ? MSG.reserva.capacidadExcedida : MSG.comunes.datosInvalidos;
+      const detalle = soloCapacidad ? undefined : errores.map((x) => `${x.etiqueta}: ${x.texto}`);
+      this.avisar(titulo, detalle, () => this.enfocar(errores[0].campo as Campo));
       return;
     }
     this.enviando.set(true);
     this.reservasApi.validarReserva(this.solicitud()).subscribe({
       next: () => {
         this.enviando.set(false);
+        const v = this.form.getRawValue();
         this.datosConfirmacion = [
           { etiqueta: 'Espacio', valor: this.seleccionado()!.nombre },
-          { etiqueta: 'Fecha', valor: formatearFechaLarga(this.datos.fecha) },
-          { etiqueta: 'Horario', valor: `${this.datos.horaInicio} a ${this.datos.horaFin}` },
-          { etiqueta: 'Asistentes', valor: String(this.datos.asistentes) },
+          { etiqueta: 'Fecha', valor: formatearFechaLarga(v.fecha) },
+          { etiqueta: 'Horario', valor: `${v.horaInicio} a ${v.horaFin}` },
+          { etiqueta: 'Asistentes', valor: String(v.asistentes) },
         ];
         this.confirmando.set(true);
       },
@@ -168,16 +181,17 @@ export class CrearReservaComponent implements OnInit {
   }
 
   private solicitud(): SolicitudReserva {
+    const v = this.form.getRawValue();
     return {
-      espacioId: this.seleccionado()!.id!,
-      fecha: this.datos.fecha,
-      horaInicio: this.datos.horaInicio,
-      horaFin: this.datos.horaFin,
-      asistentes: Number(this.datos.asistentes),
+      espacioId: v.espacioId!.id!,
+      fecha: v.fecha,
+      horaInicio: v.horaInicio,
+      horaFin: v.horaFin,
+      asistentes: Number(v.asistentes),
     };
   }
 
-  /** Muestra el texto del servidor (literal de la especificacion) con Aceptar y deja los datos tal como estaban. */
+  /** Muestra el texto del servidor (literal de la especificacion) con Aceptar, marca el campo y deja los datos como estaban. */
   private alFallar(error: unknown): void {
     const http = error instanceof HttpErrorResponse ? error : null;
     let titulo: string = MSG.comunes.errorServidor;
@@ -188,12 +202,17 @@ export class CrearReservaComponent implements OnInit {
     } else if (http?.status === 400 || http?.status === 409) {
       titulo = http.error?.mensaje ?? MSG.comunes.datosInvalidos;
       const campos = (http.error?.campos ?? {}) as Record<string, string>;
-      campo = (Object.keys(campos)[0] as Campo | undefined) ?? null;
-      // Cuando el titulo ya es el texto del campo (capacidad, disponibilidad) no se repite como detalle.
-      if (titulo === MSG.comunes.datosInvalidos) {
-        const lista = Object.entries(campos).map(([c, texto]) => `${ETIQUETAS[c as Campo] ?? c}: ${texto}`);
-        detalle = lista.length > 0 ? lista : undefined;
+      const lista: string[] = [];
+      for (const [nombre, valor] of Object.entries(campos)) {
+        const texto = textoDeCodigo(nombre, valor);
+        if (nombre in this.form.controls) {
+          marcarErrorServidor(this.form.controls[nombre as Campo], texto);
+          campo ??= nombre as Campo;
+        }
+        lista.push(`${ETIQUETAS[nombre as Campo] ?? nombre}: ${texto}`);
       }
+      // Cuando el titulo ya es el texto del campo (capacidad, disponibilidad) no se repite como detalle.
+      if (titulo === MSG.comunes.datosInvalidos) detalle = lista.length > 0 ? lista : undefined;
     }
     this.avisar(titulo, detalle, () => campo && this.enfocar(campo));
   }

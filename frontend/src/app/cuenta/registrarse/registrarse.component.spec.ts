@@ -158,10 +158,10 @@ describe('RegistrarseComponent', () => {
       }
     });
 
-    it('un correo vacío no marca error al salir del campo (solo al enviar)', async () => {
+    it('un correo vacío muestra «obligatorio» al salir del campo', async () => {
       escribir('correo', '');
       await salirDelCorreo();
-      expect(errorCorreo()).toBe('');
+      expect(errorCorreo()).toBe('El correo es obligatorio');
     });
 
     it('un correo sin formato muestra el error de formato al salir del campo', async () => {
@@ -272,6 +272,108 @@ describe('RegistrarseComponent', () => {
     await fixture.whenStable();
     expect(mensaje()?.textContent).toContain('No se pudo conectar con el servidor');
     expect(mensaje()?.querySelector('button')?.textContent).toContain('Aceptar');
+  });
+});
+
+describe('RegistrarseComponent: validacion interactiva', () => {
+  let fixture: ComponentFixture<RegistrarseComponent>;
+  let el: HTMLElement;
+  const campo = (id: string) => el.querySelector<HTMLInputElement>('#' + id)!;
+  const error = (id: string) => el.querySelector(`#${id}-error`)?.textContent?.trim() ?? '';
+  const escribir = (id: string, valor: string) => {
+    campo(id).value = valor;
+    campo(id).dispatchEvent(new Event('input'));
+  };
+  const salir = async (id: string) => {
+    campo(id).dispatchEvent(new Event('blur'));
+    await fixture.whenStable();
+  };
+
+  beforeEach(async () => {
+    TestBed.configureTestingModule({
+      imports: [RegistrarseComponent],
+      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
+    });
+    fixture = TestBed.createComponent(RegistrarseComponent);
+    el = fixture.nativeElement;
+    document.body.appendChild(el);
+    await fixture.whenStable();
+  });
+
+  afterEach(() => {
+    document.querySelectorAll('.cdk-overlay-container').forEach((c) => (c.innerHTML = ''));
+    el.remove();
+  });
+
+  it('un campo intacto no muestra error ni aria-invalid', () => {
+    ['nombre', 'cedula', 'correo', 'telefono', 'clave'].forEach((id) => {
+      expect(error(id)).toBe('');
+      expect(campo(id).getAttribute('aria-invalid')).toBeNull();
+    });
+  });
+
+  it('cada campo muestra su error al salir y se corrige en vivo, tecla a tecla', async () => {
+    const casos: [string, string, string, string][] = [
+      ['nombre', '', 'El nombre es obligatorio', 'Ana'],
+      ['cedula', 'V-1', 'La cédula debe tener solo números', '123'],
+      ['telefono', '12', 'El teléfono debe tener de 10 a 15 dígitos', '04141234567'],
+      ['clave', 'corta', 'La contraseña debe tener al menos 8 caracteres', 'larga-suficiente'],
+    ];
+    for (const [id, malo, mensaje, bueno] of casos) {
+      escribir(id, malo);
+      expect(error(id), id + ' antes de salir').toBe('');
+      await salir(id);
+      expect(error(id), id).toContain(mensaje);
+      expect(campo(id).getAttribute('aria-invalid')).toBe('true');
+      expect(campo(id).getAttribute('aria-describedby')).toContain(id + '-error');
+      escribir(id, bueno);
+      await fixture.whenStable();
+      expect(error(id), id + ' corregido').toBe('');
+      expect(campo(id).getAttribute('aria-invalid')).toBeNull();
+    }
+  });
+
+  it('el requisito de la contrasena cambia de estado en vivo', async () => {
+    const requisito = () => el.querySelector('#clave-ayuda')!;
+    expect(requisito().textContent).toContain('Mínimo 8 caracteres');
+    expect(requisito().classList.contains('cumplido')).toBe(false);
+    escribir('clave', '1234567');
+    await fixture.whenStable();
+    expect(requisito().classList.contains('cumplido')).toBe(false);
+    escribir('clave', '12345678');
+    await fixture.whenStable();
+    expect(requisito().classList.contains('cumplido')).toBe(true);
+    expect(requisito().textContent).toContain('cumplido');
+    escribir('clave', '1234567');
+    await fixture.whenStable();
+    expect(requisito().classList.contains('cumplido')).toBe(false);
+  });
+
+  it('presionar con datos invalidos marca todos los campos aunque no se hayan tocado', async () => {
+    el.querySelector<HTMLFormElement>('form')!.dispatchEvent(new Event('submit'));
+    await fixture.whenStable();
+    ['nombre', 'cedula', 'correo', 'telefono', 'clave'].forEach((id) => expect(error(id), id).not.toBe(''));
+  });
+
+  it('un error de campo del servidor queda marcado en el campo, enfoca al aceptar y se limpia al editar', async () => {
+    const http = TestBed.inject(HttpTestingController);
+    Object.entries({ nombre: 'Ana', cedula: '123', correo: 'ana@ucab.edu.ve', telefono: '04141234567', clave: 'larga-suficiente' })
+      .forEach(([id, valor]) => escribir(id, valor));
+    el.querySelector<HTMLFormElement>('form')!.dispatchEvent(new Event('submit'));
+    await fixture.whenStable();
+    Array.from(document.querySelectorAll<HTMLButtonElement>('.sb-modal-panel button'))[1].click();
+    http.expectOne('/api/auth/registro').flush(
+      { mensaje: 'Ya existe una cuenta con ese correo', campos: { correo: 'Ya existe una cuenta con ese correo' } },
+      { status: 400, statusText: 'Bad Request' },
+    );
+    await fixture.whenStable();
+    expect(error('correo')).toBe('Ya existe una cuenta con ese correo');
+    document.querySelector('sb-dialogo-mensaje')!.querySelector<HTMLButtonElement>('button')!.click();
+    await fixture.whenStable();
+    expect(document.activeElement).toBe(campo('correo'));
+    escribir('correo', 'otra@ucab.edu.ve');
+    await fixture.whenStable();
+    expect(error('correo')).toBe('');
   });
 });
 

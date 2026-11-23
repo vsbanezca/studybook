@@ -1,20 +1,28 @@
 import { Dialog } from '@angular/cdk/dialog';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, ElementRef, inject, signal, viewChild } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { MSG } from '../../compartido/messages';
 import { opcionesDialogoMensaje, DialogoMensajeComponent } from '../../compartido/dialogo-mensaje/dialogo-mensaje.component';
-import { SbIconComponent } from '../../compartido/ui/sb-icon/sb-icon.component';
+import { SbCampoDirective, SbFieldErrorComponent } from '../../compartido/ui/sb-field-error/sb-field-error.component';
 import { SbWordmarkComponent } from '../../compartido/ui/sb-wordmark/sb-wordmark.component';
+import { Mensajes, listarErrores, textoDeCodigo } from '../../compartido/validacion/validation-messages';
+import { correoValido, obligatorio } from '../../compartido/validacion/validators';
 import { SesionService } from '../../core/sesion.service';
 import { CuentaService } from '../cuenta.service';
 
-const FORMATO_CORREO = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const ETIQUETAS = { correo: 'Correo', clave: 'Contraseña' };
+
+/** Solo obligatorio y formato de correo: sin dominio institucional ni largo de contrasena (lo dice la especificacion). */
+const MENSAJES: Record<string, Mensajes> = {
+  correo: { required: MSG.cuenta.correoObligatorio, correo: MSG.cuenta.correoFormato },
+  clave: { required: MSG.cuenta.claveObligatoria },
+};
 
 @Component({
   selector: 'sb-iniciar-sesion',
-  imports: [ReactiveFormsModule, RouterLink, SbIconComponent, SbWordmarkComponent],
+  imports: [ReactiveFormsModule, RouterLink, SbCampoDirective, SbFieldErrorComponent, SbWordmarkComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './iniciar-sesion.component.html',
   styleUrl: './iniciar-sesion.component.css',
@@ -30,39 +38,22 @@ export class IniciarSesionComponent {
   private readonly claveEl = viewChild.required<ElementRef<HTMLInputElement>>('claveEl');
 
   protected readonly form = this.fb.group({
-    correo: ['', [Validators.required, Validators.pattern(FORMATO_CORREO)]],
-    clave: ['', Validators.required],
+    correo: ['', [obligatorio, correoValido]],
+    clave: ['', obligatorio],
   });
-  protected readonly intentado = signal(false);
+  protected readonly mensajes = MENSAJES;
   protected readonly enviando = signal(false);
-
-  /** Mensaje de error por campo (vacio si el campo es valido). */
-  protected errorCorreo(): string {
-    const c = this.form.controls.correo;
-    if (c.hasError('required')) return MSG.cuenta.correoObligatorio;
-    return c.hasError('pattern') ? MSG.cuenta.correoFormato : '';
-  }
-
-  protected errorClave(): string {
-    return this.form.controls.clave.hasError('required') ? MSG.cuenta.claveObligatoria : '';
-  }
-
-  protected mostrarErrorCorreo(): boolean {
-    return this.intentado() && this.errorCorreo() !== '';
-  }
-
-  protected mostrarErrorClave(): boolean {
-    return this.intentado() && this.errorClave() !== '';
-  }
 
   protected enviar(): void {
     if (this.enviando()) return;
-    this.intentado.set(true);
-    const errores = [this.errorCorreo(), this.errorClave()].filter((e) => e !== '');
+    this.form.markAllAsTouched();
+    const errores = listarErrores(this.form, ETIQUETAS, MENSAJES);
     if (errores.length > 0) {
-      this.mostrarMensaje(MSG.comunes.datosInvalidos, errores, () => {
-        (this.errorCorreo() ? this.correoEl() : this.claveEl()).nativeElement.focus();
-      });
+      this.mostrarMensaje(
+        MSG.comunes.datosInvalidos,
+        errores.map((e) => e.texto),
+        () => (errores[0].campo === 'correo' ? this.correoEl() : this.claveEl()).nativeElement.focus(),
+      );
       return;
     }
     this.enviando.set(true);
@@ -89,7 +80,7 @@ export class IniciarSesionComponent {
         this.claveEl().nativeElement.focus();
       });
     } else if (estado === 400) {
-      this.mostrarMensaje(MSG.comunes.datosInvalidos, Object.values((error as HttpErrorResponse).error?.campos ?? {}), () =>
+      this.mostrarMensaje(MSG.comunes.datosInvalidos, Object.entries((error as HttpErrorResponse).error?.campos ?? {}).map(([c, t]) => textoDeCodigo(c, String(t))), () =>
         this.correoEl().nativeElement.focus(),
       );
     } else {

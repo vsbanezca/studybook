@@ -165,7 +165,7 @@ class EquipamientoTests {
 			MvcResult r = crear(admin, caso[1]);
 			assertThat(r.getResponse().getStatus()).as(caso[0]).isEqualTo(400);
 			assertThat(r.getResponse().getContentAsString()).as(caso[0]).contains("\"" + caso[0] + "\"")
-					.contains("Este campo es obligatorio.");
+					.contains("obligatorio");
 		}
 	}
 
@@ -174,6 +174,14 @@ class EquipamientoTests {
 		MvcResult r = crear(admin, cuerpo("A", "Audiovisual", "d", "Disponible", 987654L));
 		assertThat(r.getResponse().getStatus()).isEqualTo(400);
 		assertThat(r.getResponse().getContentAsString()).contains("espacioId").contains("El espacio indicado no existe");
+	}
+
+	@Test
+	void unEspacioIdQueNoEsNumeroAlConsultarDa400ConElCampoYElCodigoFormato() throws Exception {
+		MvcResult r = mvc.perform(get("/api/equipamientos").param("espacioId", "abc").session(admin)).andReturn();
+		assertThat(r.getResponse().getStatus()).isEqualTo(400);
+		assertThat(r.getResponse().getContentAsString()).contains("Datos proporcionados incorrectos")
+				.contains("\"espacioId\":\"formato\"");
 	}
 
 	@Test
@@ -217,7 +225,7 @@ class EquipamientoTests {
 			assertThat(r.getResponse().getContentAsString()).as(mala).contains("\"cantidad\"");
 		}
 		assertThat(crear(admin, cuerpo("Silla", "Mobiliario", "Silla", "Disponible", "0", espacioId)).getResponse().getContentAsString())
-				.contains("La cantidad debe ser un número entero mayor o igual a 1");
+				.contains("\"cantidad\":\"minimo\"");
 		assertThat(equipamientos.listarPorEspacio(espacioId)).isEmpty();
 	}
 

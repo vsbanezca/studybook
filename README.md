@@ -1,6 +1,6 @@
 # StudyBook
 
-Sistema de reserva de espacios y equipamiento de estudio. Proyecto universitario de Ingeniería de Software (UCAB).
+Sistema de reserva de espacios de estudio y de consulta de su equipamiento. Proyecto universitario de Ingeniería de Software (UCAB).
 
 ## Integrantes
 
@@ -9,105 +9,103 @@ Sistema de reserva de espacios y equipamiento de estudio. Proyecto universitario
 - Gabriel Raffoul
 - José Quintero
 
+## Historias del Sprint 1
+
+| Historia | Quién la usa |
+|---|---|
+| Registrarse | Visitante (crea una cuenta de Miembro) |
+| Iniciar sesión | Miembro y Administrador |
+| Crear espacio | Administrador |
+| Consultar espacios | Miembro y Administrador |
+| Crear equipamiento | Administrador |
+| Consultar equipamiento de un espacio | Miembro y Administrador |
+| Crear reserva | Miembro |
+| Consultar mis reservas | Miembro |
+
+Las ocho están implementadas en el frontend y en el backend, con pruebas.
+
+## Estructura
+
+El sistema tiene dos contenedores:
+
+| Carpeta | Contenedor | Tecnología |
+|---|---|---|
+| `frontend/` | Aplicación web (cliente) | Angular 22 (componentes standalone) |
+| `backend/` | API REST | Spring Boot 4.1.2, Java 21 |
+
+- **Frontend** (`frontend/src/app/`): una carpeta por historia (`cuenta/`, `espacios/`, `equipamiento/`, `reservas/`), `core/` (sesión, guardas de ruta, interceptor y `ApiService`) y `compartido/` (componentes visuales `ui/`, validación `validacion/` y textos).
+- **Backend** (`backend/src/main/java/ve/edu/ucab/studybook/`): `control/` con una carpeta por historia (controlador, servicio, repositorio y DTO), más `comun/` y `seguridad/`; `model/` con los conceptos del dominio y `exceptions/` con el manejo de errores.
+- **Persistencia:** archivos JSON en `backend/data/` (`cuentas.json`, `espacios.json`, `equipamientos.json`, `reservas.json`), detrás de `JsonRepository`. La carpeta se crea al arrancar y no se versiona (está en `.gitignore`).
+
 ## Requisitos
 
 | Herramienta | Versión |
 |---|---|
-| Node.js | v26.13.0 (LTS) |
+| Node.js | 26.13.0 |
 | npm | 11.4.2 |
-| Angular / Angular CLI | 22.2.x (CLI 22.2.6) |
-| JDK | Eclipse Temurin 21.0.13 |
-| Spring Boot | 4.1.2 |
-| Maven | No hace falta instalarlo: se usa el Maven Wrapper (`mvnw`) |
+| Angular CLI | 22.2.6 (se instala con `npm install`) |
+| Java (JDK) | 21 (Eclipse Temurin 21.0.13) |
+| Maven | Se usa el Maven Wrapper del repositorio (`mvnw`); si no puede descargar Maven, sirve un Maven instalado (`mvn`) |
 
-## Cómo correr
+## Cómo ejecutar
 
-### Frontend
-
-```bash
-cd frontend
-npm install
-ng serve
-```
-
-Disponible en http://localhost:4200
-
-### Backend
+### Backend (puerto 8080)
 
 ```bash
 cd backend
 ./mvnw spring-boot:run
 ```
 
-En Windows:
+En Windows: `mvnw.cmd spring-boot:run`. Si el wrapper falla al descargar Maven, usa `mvn spring-boot:run`.
 
-```powershell
+El perfil normal de la aplicación es `dev` (`spring.profiles.active=dev` en `application.properties`), así que no hace falta indicarlo.
+
+### Frontend (puerto 4200)
+
+En otra terminal:
+
+```bash
+cd frontend
+npm install
+npm start
+```
+
+Abre http://localhost:4200. `ng serve` redirige todo lo que empieza con `/api` al backend en `http://localhost:8080` (`frontend/proxy.conf.json`), por eso no hace falta configurar CORS y la cookie de sesión viaja con cada petición.
+
+### Pruebas
+
+```bash
+cd frontend
+npm run verificar   # estilo, ng build y ng test
+
 cd backend
-mvnw.cmd spring-boot:run
+./mvnw test         # o mvn test
 ```
 
-Para desarrollo local (carga cuentas de prueba) usar el perfil `dev`:
+El flujo `.github/workflows/ci.yml` repite ambas verificaciones en cada pull request.
 
-```powershell
-mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=dev"
-```
+## Datos iniciales
 
-Cuentas de prueba (solo perfil `dev`, definidas en `application-dev.properties`):
+Al arrancar solo se precargan las **dos cuentas base**:
 
-| Rol | Correo | Contraseña |
+| Cuenta | Clase que la crea | Dónde se configuran el correo y la clave |
 |---|---|---|
-| Administrador | admin@studybook.dev | Admin-dev-123 |
-| Miembro | miembro@studybook.dev | Miembro-dev-123 |
+| Administrador | `CargaAdministrador` | Propiedades `studybook.admin.correo` y `studybook.admin.clave`. En el perfil `dev` vienen de `application-dev.properties`; en otro perfil, de las variables de entorno `STUDYBOOK_ADMIN_CORREO` y `STUDYBOOK_ADMIN_CLAVE` (opcionales: `STUDYBOOK_ADMIN_NOMBRE`, `STUDYBOOK_ADMIN_CEDULA`) |
+| Miembro | `CargaMiembroPrueba` | Propiedades `studybook.miembro-prueba.correo` y `studybook.miembro-prueba.clave`, en `application-dev.properties` (solo perfil `dev`) |
 
-Fuera de `dev`, la cuenta de Administrador se precarga desde las variables de entorno `STUDYBOOK_ADMIN_CORREO` y `STUDYBOOK_ADMIN_CLAVE` (opcionales: `STUDYBOOK_ADMIN_NOMBRE`, `STUDYBOOK_ADMIN_CEDULA`).
+Cada cuenta se crea una sola vez: si ya existe, no se duplica. Las claves se guardan cifradas con BCrypt.
 
-`ng serve` redirige `/api` al backend (`frontend/proxy.conf.json`), por eso no hace falta configurar CORS.
-
-## Cómo correr la demo
-
-1. Backend con datos de ejemplo (perfil `dev`, puerto 8080):
-
-   ```powershell
-   cd backend
-   mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=dev"
-   ```
-
-   Si `mvnw` falla al descargar Maven, usa `mvn spring-boot:run "-Dspring-boot.run.profiles=dev"`.
-2. Frontend (en otra terminal, puerto 4200):
-
-   ```powershell
-   cd frontend
-   npm install
-   ng serve
-   ```
-
-3. Abrir http://localhost:4200 e iniciar sesión con una cuenta de prueba (tabla de arriba), o crear una cuenta nueva con «Registrarse» (correo `@ucab.edu.ve` o `@est.ucab.edu.ve`).
-
-El perfil `dev` carga 3 espacios con capacidades distintas y 2 o 3 equipamientos cada uno, sin duplicarlos si se reinicia. Fuera de `dev` no se precarga nada.
-
-Antes de abrir un pull request: `npm run verificar` en `frontend/` y `mvn test` en `backend/`.
-
-## Estado de las historias del Sprint 1
-
-| Historia | Estado |
-|---|---|
-| Registrarse | Completa (backend y frontend, con pruebas) |
-| Iniciar sesión | Completa |
-| Crear espacio | Completa |
-| Consultar espacios | Completa; el botón «Reservar» se ve al Miembro pero se conecta con Crear reserva |
-| Crear equipamiento | Completa |
-| Consultar equipamiento de un espacio | Completa |
-| Crear reserva | Pendiente (otra rama) |
-| Consultar mis reservas | Solo pantalla y servicio del frontend; falta el backend (`GET /api/reservas/mias`) |
+No se precargan espacios, equipamientos ni reservas: el Administrador crea los espacios y su equipamiento desde la aplicación, y los Miembros crean sus reservas. También se pueden crear cuentas de Miembro nuevas con «Registrarse» (correo `@ucab.edu.ve` o `@est.ucab.edu.ve`, según `studybook.registro.dominios`).
 
 ## Decisiones técnicas
 
-- **Sesión:** cookie de sesión de Spring (`JSESSIONID`, HttpOnly, SameSite=Lax) con la sesión guardada en el servidor. Es lo más simple y seguro para Angular + Spring: el navegador la envía solo y JavaScript no puede leerla, así no se guarda ningún token en el cliente. El rol se valida en el servidor (`AutorizacionInterceptor`): `/api/admin/**` responde 403 a un Miembro.
-- **Persistencia (provisional):** archivos JSON en `backend/data/` detrás de `JsonRepository`, para reemplazarlos por una base de datos sin tocar servicios ni controladores. La carpeta no se versiona.
-- **Contraseñas:** BCrypt (`spring-security-crypto`, licencia Apache 2.0). No se registran ni se devuelven.
-
-Disponible en http://localhost:8080
+- **El front valida, el back verifica.** El frontend valida el formato de los datos antes de enviarlos (campos obligatorios, tipos, correo institucional, teléfono, fechas y horas no pasadas, hora de fin posterior a la de inicio) con los validadores de `frontend/src/app/compartido/validacion/`. El backend nunca confía en el frontend: vuelve a comprobar el formato con Bean Validation (responde 400 con el campo y un código) y aplica las reglas de negocio (choque de horario, capacidad, existencia del espacio, datos repetidos y permisos por rol). La capacidad del espacio también se revisa en el frontend, pero solo como aviso temprano: quien decide es el backend.
+- **Un solo canal de comunicación.** `ApiService` (`frontend/src/app/core/api.service.ts`) es la única clase del frontend que usa `HttpClient`. Toma la URL base de `environments` (`/api`), envía la cookie de sesión y la usan `CuentaService`, `EspacioService`, `EquipamientoService` y `ReservaService`. El interceptor `authInterceptor` solo atiende la respuesta 401 (vuelve a Iniciar sesión).
+- **Sesión:** cookie de sesión de Spring (`JSESSIONID`, HttpOnly, SameSite=Lax) con la sesión guardada en el servidor. JavaScript no puede leerla y no se guarda ningún token en el cliente. El rol se valida en el servidor con `AutorizacionInterceptor`.
+- **Fecha y hora:** las reglas que dependen de «hoy» y de «ahora» usan un `Clock` con la zona `studybook.zona-horaria` (America/Caracas por defecto). Las pruebas usan un reloj fijo, así que no dependen de la zona horaria de la máquina.
+- **Persistencia (provisional):** archivos JSON detrás de `JsonRepository`, para poder reemplazarlos por una base de datos sin tocar servicios ni controladores.
+- **Contraseñas:** BCrypt (`spring-security-crypto`). No se registran en el log ni se devuelven por la API.
 
 ## Documentos de trabajo
 
-Las especificaciones, guías y prompts del equipo son solo locales (`docs-local/`) y no se suben al repositorio. Están listados en el `.gitignore`.
+Las especificaciones, guías y documentos de trabajo del equipo son solo locales (`docs-local/`) y no se suben al repositorio. Están listados en el `.gitignore`.

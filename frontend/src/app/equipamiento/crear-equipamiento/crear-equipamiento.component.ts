@@ -1,24 +1,20 @@
 import { Dialog } from '@angular/cdk/dialog';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { DialogoMensajeComponent, opcionesDialogoMensaje } from '../../compartido/dialogo-mensaje/dialogo-mensaje.component';
 import { MSG } from '../../compartido/messages';
 import { DatoConfirmacion, SbConfirmDialogComponent } from '../../compartido/ui/sb-confirm-dialog/sb-confirm-dialog.component';
-import { SbIconComponent } from '../../compartido/ui/sb-icon/sb-icon.component';
+import { SbCampoDirective, SbFieldErrorComponent } from '../../compartido/ui/sb-field-error/sb-field-error.component';
 import { SbMessageComponent } from '../../compartido/ui/sb-message/sb-message.component';
+import { Mensajes, listarErrores, textoDeCodigo } from '../../compartido/validacion/validation-messages';
+import { enteroMinimo, marcarErrorServidor, obligatorio } from '../../compartido/validacion/validators';
 import { Espacio } from '../../espacios/espacio.model';
 import { EspacioService } from '../../espacios/espacio.service';
 import { EquipamientoService } from '../equipamiento.service';
 
 type Campo = 'nombre' | 'categoria' | 'estado' | 'cantidad' | 'descripcion';
-
-interface ErrorCampo {
-  campo: Campo;
-  etiqueta: string;
-  texto: string;
-}
 
 const ETIQUETAS: Record<Campo, string> = {
   nombre: 'Nombre',
@@ -28,15 +24,21 @@ const ETIQUETAS: Record<Campo, string> = {
   descripcion: 'Descripción',
 };
 
+const MENSAJES: Record<string, Mensajes> = {
+  cantidad: { entero: MSG.equipamiento.cantidadInvalida },
+};
+
+// SUPOSICION: el brief no define largos ni formato para estos campos; solo obligatorio y el tipo basico.
 @Component({
   selector: 'app-crear-equipamiento',
-  imports: [FormsModule, RouterLink, SbConfirmDialogComponent, SbIconComponent, SbMessageComponent],
+  imports: [ReactiveFormsModule, RouterLink, SbCampoDirective, SbConfirmDialogComponent, SbFieldErrorComponent, SbMessageComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './crear-equipamiento.component.html',
   styleUrl: './crear-equipamiento.component.css',
 })
 export class CrearEquipamientoComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
+  private readonly fb = inject(FormBuilder).nonNullable;
   private readonly router = inject(Router);
   private readonly dialog = inject(Dialog);
   private readonly espacios = inject(EspacioService);
@@ -45,9 +47,15 @@ export class CrearEquipamientoComponent implements OnInit {
   protected espacioId = 0;
   protected readonly espacio = signal<Espacio | null>(null);
 
-  protected readonly nuevo = { nombre: '', categoria: '', estado: '', cantidad: 1 as number | null, descripcion: '' };
+  protected readonly form = this.fb.group({
+    nombre: ['', obligatorio],
+    categoria: ['', obligatorio],
+    estado: ['', obligatorio],
+    cantidad: this.fb.control<number | null>(1, [obligatorio, enteroMinimo()]),
+    descripcion: ['', obligatorio],
+  });
+  protected readonly mensajes = MENSAJES;
 
-  protected readonly intentado = signal(false);
   protected readonly enviando = signal(false);
   protected readonly confirmando = signal(false);
   protected readonly creado = signal(false);
@@ -71,46 +79,23 @@ export class CrearEquipamientoComponent implements OnInit {
     });
   }
 
-  /** Campos con error, en el orden del formulario. */
-  protected errores(): ErrorCampo[] {
-    const lista: ErrorCampo[] = [];
-    (['nombre', 'categoria', 'estado', 'descripcion'] as const).forEach((campo) => {
-      if (!this.nuevo[campo].trim()) {
-        lista.push({ campo, etiqueta: ETIQUETAS[campo], texto: MSG.comunes.campoObligatorio });
-      }
-    });
-    const cantidad = this.nuevo.cantidad;
-    if (cantidad === null || cantidad === undefined || (cantidad as unknown) === '') {
-      lista.push({ campo: 'cantidad', etiqueta: ETIQUETAS.cantidad, texto: MSG.comunes.campoObligatorio });
-    } else if (!Number.isInteger(cantidad) || cantidad < 1) {
-      lista.push({ campo: 'cantidad', etiqueta: ETIQUETAS.cantidad, texto: MSG.equipamiento.cantidadInvalida });
-    }
-    // Los errores siguen el orden del formulario.
-    const orden: Campo[] = ['nombre', 'categoria', 'estado', 'cantidad', 'descripcion'];
-    lista.sort((a, b) => orden.indexOf(a.campo) - orden.indexOf(b.campo));
-    return lista;
-  }
-
-  protected errorDe(campo: Campo): string {
-    return this.intentado() ? (this.errores().find((x) => x.campo === campo)?.texto ?? '') : '';
-  }
-
   protected solicitarConfirmacion(): void {
     if (this.enviando() || this.confirmando()) return;
-    this.intentado.set(true);
-    const errores = this.errores();
+    this.form.markAllAsTouched();
+    const errores = listarErrores(this.form, ETIQUETAS, MENSAJES);
     if (errores.length > 0) {
       const detalle = errores.map((x) => `${x.etiqueta}: ${x.texto}`);
       const ref = this.dialog.open(DialogoMensajeComponent, opcionesDialogoMensaje({ titulo: MSG.comunes.datosInvalidos, detalle }));
       ref.closed.subscribe(() => document.getElementById(errores[0].campo)?.focus());
       return;
     }
+    const v = this.form.getRawValue();
     this.datosConfirmacion = [
       { etiqueta: 'Espacio', valor: this.espacio()?.nombre ?? '' },
-      { etiqueta: 'Nombre', valor: this.nuevo.nombre.trim() },
-      { etiqueta: 'Categoría', valor: this.nuevo.categoria.trim() },
-      { etiqueta: 'Estado', valor: this.nuevo.estado.trim() },
-      { etiqueta: 'Cantidad', valor: String(this.nuevo.cantidad) },
+      { etiqueta: 'Nombre', valor: v.nombre.trim() },
+      { etiqueta: 'Categoría', valor: v.categoria.trim() },
+      { etiqueta: 'Estado', valor: v.estado.trim() },
+      { etiqueta: 'Cantidad', valor: String(v.cantidad) },
     ];
     this.confirmando.set(true);
   }
@@ -123,13 +108,14 @@ export class CrearEquipamientoComponent implements OnInit {
   protected confirmarCreacion(): void {
     this.confirmando.set(false);
     this.enviando.set(true);
+    const v = this.form.getRawValue();
     this.equipamientos
       .crearEquipamiento({
-        nombre: this.nuevo.nombre.trim(),
-        categoria: this.nuevo.categoria.trim(),
-        estado: this.nuevo.estado.trim(),
-        cantidad: Number(this.nuevo.cantidad),
-        descripcion: this.nuevo.descripcion.trim(),
+        nombre: v.nombre.trim(),
+        categoria: v.categoria.trim(),
+        estado: v.estado.trim(),
+        cantidad: Number(v.cantidad),
+        descripcion: v.descripcion.trim(),
         espacioId: this.espacioId,
       })
       .subscribe({
@@ -153,17 +139,25 @@ export class CrearEquipamientoComponent implements OnInit {
     const http = error instanceof HttpErrorResponse ? error : null;
     let titulo: string = MSG.comunes.errorServidor;
     let detalle: string[] | undefined;
+    let primero: Campo | null = null;
     if (http?.status === 403) {
       titulo = MSG.espacio.sinPermiso;
     } else if (http?.status === 400 || http?.status === 404) {
       titulo = http.error?.mensaje ?? MSG.comunes.datosInvalidos;
-      const campos = http.error?.campos;
-      if (campos && typeof campos === 'object') {
-        const lista = Object.entries(campos).map(([campo, texto]) => `${ETIQUETAS[campo as Campo] ?? campo}: ${texto}`);
-        detalle = lista.length > 0 ? lista : undefined;
+      const campos = (http.error?.campos ?? {}) as Record<string, string>;
+      const lista: string[] = [];
+      for (const [campo, valor] of Object.entries(campos)) {
+        const texto = textoDeCodigo(campo, valor);
+        if (campo in this.form.controls) {
+          marcarErrorServidor(this.form.controls[campo as Campo], texto);
+          primero ??= campo as Campo;
+        }
+        lista.push(`${ETIQUETAS[campo as Campo] ?? campo}: ${texto}`);
       }
+      detalle = titulo === MSG.comunes.datosInvalidos && lista.length > 0 ? lista : undefined;
     }
-    this.dialog.open(DialogoMensajeComponent, opcionesDialogoMensaje({ titulo, detalle }));
+    const ref = this.dialog.open(DialogoMensajeComponent, opcionesDialogoMensaje({ titulo, detalle }));
+    ref.closed.subscribe(() => primero && document.getElementById(primero)?.focus());
   }
 
   private avisarYVolver(titulo: string): void {

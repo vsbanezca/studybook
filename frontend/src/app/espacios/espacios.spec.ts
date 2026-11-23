@@ -168,6 +168,68 @@ describe('CrearEspacioComponent', () => {
     http.expectNone('/api/espacios');
   });
 
+  describe('validacion interactiva', () => {
+    const error = (id: string) => el.querySelector(`#${id}-error`)?.textContent?.trim() ?? '';
+    const salir = async (id: string) => {
+      campo(id).dispatchEvent(new Event('blur'));
+      fixture.detectChanges();
+      await fixture.whenStable();
+    };
+
+    it('un campo intacto no muestra error', () => {
+      for (const id of ['nombre', 'ubicacion', 'piso', 'capacidad']) {
+        expect(error(id)).toBe('');
+        expect(campo(id).getAttribute('aria-invalid')).toBeNull();
+      }
+    });
+
+    it('el error aparece al salir del campo, se actualiza en cada tecla y desaparece al corregir', async () => {
+      await salir('nombre');
+      expect(error('nombre')).toBe('Este campo es obligatorio.');
+      expect(campo('nombre').getAttribute('aria-invalid')).toBe('true');
+      escribir('nombre', '  ');
+      fixture.detectChanges();
+      expect(error('nombre')).toBe('Este campo es obligatorio.');
+      escribir('nombre', 'Sala 5');
+      fixture.detectChanges();
+      expect(error('nombre')).toBe('');
+      expect(campo('nombre').getAttribute('aria-invalid')).toBeNull();
+    });
+
+    it('la capacidad rechaza 0 y decimales apenas se sale del campo', async () => {
+      for (const malo of ['0', '-2', '2.5']) {
+        escribir('capacidad', malo);
+        await salir('capacidad');
+        expect(error('capacidad'), malo).toContain('número entero mayor que 0');
+      }
+      escribir('capacidad', '8');
+      fixture.detectChanges();
+      expect(error('capacidad')).toBe('');
+    });
+
+    it('presionar con datos invalidos marca todos, muestra el modal literal y Aceptar enfoca el primero', async () => {
+      await enviar();
+      for (const id of ['nombre', 'ubicacion', 'piso']) expect(error(id), id).not.toBe('');
+      expect(modal('sb-dialogo-mensaje')?.textContent).toContain('Datos proporcionados incorrectos');
+      botonModal('Aceptar').click();
+      fixture.detectChanges();
+      expect(document.activeElement).toBe(campo('nombre'));
+    });
+
+    it('un duplicado del servidor se marca en el campo nombre', async () => {
+      llenar();
+      await enviar();
+      botonModal('Sí').click();
+      http.expectOne('/api/espacios').flush(
+        { mensaje: 'Ya existe un espacio con ese nombre en esa ubicación', campos: { nombre: 'Ya existe un espacio con ese nombre en esa ubicación' } },
+        { status: 400, statusText: 'Bad Request' },
+      );
+      fixture.detectChanges();
+      await fixture.whenStable();
+      expect(error('nombre')).toContain('Ya existe un espacio');
+    });
+  });
+
   it('rechaza una capacidad que no sea entera y mayor que 0', async () => {
     llenar();
     escribir('capacidad', '0');

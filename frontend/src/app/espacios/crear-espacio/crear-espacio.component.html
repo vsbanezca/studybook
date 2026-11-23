@@ -5,49 +5,35 @@
   @if (mostrarMensajeExito()) {
     <sb-message tipo="exito" [texto]="textoExito" (aceptado)="aceptarMensajeExito()" />
   } @else {
-    <form (ngSubmit)="solicitarConfirmacion()" novalidate>
+    <form [formGroup]="form" (ngSubmit)="solicitarConfirmacion()" novalidate>
       <div class="grupo-campo sb-campo">
         <label for="nombre" class="etiqueta-campo sb-etiqueta">Nombre del espacio</label>
-        <input type="text" id="nombre" name="nombre" [(ngModel)]="nuevoEspacio.nombre" class="sb-input"
-          [attr.aria-invalid]="errorDe('nombre') ? 'true' : null"
-          [attr.aria-describedby]="errorDe('nombre') ? 'nombre-error' : null">
-        @if (errorDe('nombre')) {
-          <span class="sb-error-texto" id="nombre-error"><sb-icon nombre="circle-alert" />{{ errorDe('nombre') }}</span>
-        }
+        <input type="text" id="nombre" formControlName="nombre" class="sb-input" [sbCampo]="form.controls.nombre">
+        <sb-field-error idMensaje="nombre-error" [control]="form.controls.nombre" />
       </div>
 
       <div class="grupo-campo sb-campo">
         <label for="ubicacion" class="etiqueta-campo sb-etiqueta">Ubicación (edificio)</label>
-        <input type="text" id="ubicacion" name="ubicacion" [(ngModel)]="nuevoEspacio.ubicacion" class="sb-input"
-          [attr.aria-invalid]="errorDe('ubicacion') ? 'true' : null"
-          [attr.aria-describedby]="errorDe('ubicacion') ? 'ubicacion-error' : null">
-        @if (errorDe('ubicacion')) {
-          <span class="sb-error-texto" id="ubicacion-error"><sb-icon nombre="circle-alert" />{{ errorDe('ubicacion') }}</span>
-        }
+        <input type="text" id="ubicacion" formControlName="ubicacion" class="sb-input" [sbCampo]="form.controls.ubicacion">
+        <sb-field-error idMensaje="ubicacion-error" [control]="form.controls.ubicacion" />
       </div>
 
       <div class="grupo-campo sb-campo">
         <label for="piso" class="etiqueta-campo sb-etiqueta">Piso</label>
-        <input type="text" id="piso" name="piso" [(ngModel)]="nuevoEspacio.piso" class="sb-input"
-          [attr.aria-invalid]="errorDe('piso') ? 'true' : null"
-          [attr.aria-describedby]="errorDe('piso') ? 'piso-error' : null">
-        @if (errorDe('piso')) {
-          <span class="sb-error-texto" id="piso-error"><sb-icon nombre="circle-alert" />{{ errorDe('piso') }}</span>
-        }
+        <input type="text" id="piso" formControlName="piso" class="sb-input" [sbCampo]="form.controls.piso">
+        <sb-field-error idMensaje="piso-error" [control]="form.controls.piso" />
       </div>
 
       <div class="grupo-campo sb-campo">
         <label for="descripcion" class="etiqueta-campo sb-etiqueta">Descripción (opcional)</label>
-        <textarea id="descripcion" name="descripcion" rows="3" [(ngModel)]="nuevoEspacio.descripcion" class="sb-input"></textarea>
+        <textarea id="descripcion" formControlName="descripcion" rows="3" class="sb-input"></textarea>
       </div>
 
       <div class="grupo-campo sb-campo">
         <label for="capacidad" class="etiqueta-campo sb-etiqueta">Capacidad (personas)</label>
-        <input type="number" id="capacidad" name="capacidad" min="1" step="1" [(ngModel)]="nuevoEspacio.capacidad" class="sb-input"
-          aria-describedby="capacidad-ayuda" [attr.aria-invalid]="errorDe('capacidad') ? 'true' : null">
-        @if (errorDe('capacidad')) {
-          <span class="sb-error-texto" id="capacidad-error"><sb-icon nombre="circle-alert" />{{ errorDe('capacidad') }}</span>
-        }
+        <input type="number" id="capacidad" formControlName="capacidad" min="1" step="1" class="sb-input"
+          [sbCampo]="form.controls.capacidad" sbAyuda="capacidad-ayuda">
+        <sb-field-error idMensaje="capacidad-error" [control]="form.controls.capacidad" [mensajes]="mensajes['capacidad']" />
         <small class="sb-apoyo" id="capacidad-ayuda">Número entero mayor que 0.</small>
       </div>
 

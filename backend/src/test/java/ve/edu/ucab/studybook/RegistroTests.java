@@ -167,32 +167,32 @@ class RegistroTests {
 	}
 
 	@Test
-	void cadaCampoEsObligatorioYElMensajeIndicaElCampo() throws Exception {
-		esperaRechazo(validos().con("nombre", "  "), "nombre", "El nombre es obligatorio");
-		esperaRechazo(validos().con("cedula", ""), "cedula", "La cédula es obligatoria");
-		esperaRechazo(validos().con("correo", null), "correo", "El correo es obligatorio");
-		esperaRechazo(validos().con("telefono", " "), "telefono", "El teléfono es obligatorio");
-		esperaRechazo(validos().con("clave", ""), "clave", "La contraseña es obligatoria");
+	void cadaCampoEsObligatorioYLaRespuestaIndicaElCampoConUnCodigo() throws Exception {
+		esperaRechazo(validos().con("nombre", "  "), "nombre", "obligatorio");
+		esperaRechazo(validos().con("cedula", ""), "cedula", "obligatorio");
+		esperaRechazo(validos().con("correo", null), "correo", "obligatorio");
+		esperaRechazo(validos().con("telefono", " "), "telefono", "obligatorio");
+		esperaRechazo(validos().con("clave", ""), "clave", "obligatorio");
 	}
 
 	@Test
 	void laCedulaDebeSerNumerica() throws Exception {
-		esperaRechazo(validos().con("cedula", "V-12345678"), "cedula", "La cédula debe tener solo números");
-		esperaRechazo(validos().con("cedula", "12a45"), "cedula", "La cédula debe tener solo números");
+		esperaRechazo(validos().con("cedula", "V-12345678"), "cedula", "formato");
+		esperaRechazo(validos().con("cedula", "12a45"), "cedula", "formato");
 	}
 
 	@Test
 	void elCorreoDebeTenerFormatoValido() throws Exception {
-		esperaRechazo(validos().con("correo", "no-es-correo"), "correo", "formato de correo electrónico");
-		esperaRechazo(validos().con("correo", "a b@ucab.edu.ve"), "correo", "formato de correo electrónico");
+		esperaRechazo(validos().con("correo", "no-es-correo"), "correo", "formato");
+		esperaRechazo(validos().con("correo", "a b@ucab.edu.ve"), "correo", "formato");
 	}
 
 	@Test
 	void soloSeAceptanLosDominiosInstitucionalesConfigurados() throws Exception {
-		esperaRechazo(validos().con("correo", "ana@gmail.com"), "correo", "Usa tu correo institucional");
+		esperaRechazo(validos().con("correo", "ana@gmail.com"), "correo", "dominio_no_institucional");
 		// Un subdominio no listado o un dominio que solo termina igual tampoco vale.
-		esperaRechazo(validos().con("correo", "ana@x.ucab.edu.ve"), "correo", "Usa tu correo institucional");
-		esperaRechazo(validos().con("correo", "ana@falsoucab.edu.ve"), "correo", "Usa tu correo institucional");
+		esperaRechazo(validos().con("correo", "ana@x.ucab.edu.ve"), "correo", "dominio_no_institucional");
+		esperaRechazo(validos().con("correo", "ana@falsoucab.edu.ve"), "correo", "dominio_no_institucional");
 		// Los dos dominios iniciales funcionan.
 		assertThat(registrar(validos().json()).getResponse().getStatus()).isEqualTo(201);
 		Datos estudiante = validos();
@@ -218,7 +218,7 @@ class RegistroTests {
 
 	@Test
 	void elTelefonoInvalidoSeRechazaDespuesDeNormalizar() throws Exception {
-		String mensaje = "El teléfono debe tener de 10 a 15 dígitos";
+		String mensaje = "formato";
 		esperaRechazo(validos().con("telefono", "0412-123a567"), "telefono", mensaje);
 		esperaRechazo(validos().con("telefono", "04141234"), "telefono", mensaje);
 		esperaRechazo(validos().con("telefono", "0414 123 4567 8901 2345"), "telefono", mensaje);
@@ -229,7 +229,7 @@ class RegistroTests {
 
 	@Test
 	void ElDominioDelCorreoSeCompletaExactoSinDistinguirMayusculas() throws Exception {
-		String mensaje = "Usa tu correo institucional";
+		String mensaje = "dominio_no_institucional";
 		for (String falso : new String[] { "x@ucab.edu.ve.malo.com", "x@malo.com", "x@xucab.edu.ve", "x@sub.ucab.edu.ve",
 				"x@ucab.edu.vee", "x@ucab.edu", "x@malo.com.ucab.edu.ve" }) {
 			esperaRechazo(validos().con("correo", falso), "correo", mensaje);
@@ -244,26 +244,48 @@ class RegistroTests {
 
 	@Test
 	void unCorreoConDosArrobasNoPasaElFormato() throws Exception {
-		esperaRechazo(validos().con("correo", "x@malo.com@ucab.edu.ve"), "correo", "formato de correo electrónico");
+		esperaRechazo(validos().con("correo", "x@malo.com@ucab.edu.ve"), "correo", "formato");
 	}
 
 	@Test
 	void laCedulaNoAceptaVacioNiLetras() throws Exception {
-		esperaRechazo(validos().con("cedula", ""), "cedula", "La cédula es obligatoria");
-		esperaRechazo(validos().con("cedula", "   "), "cedula", "La cédula es obligatoria");
-		esperaRechazo(validos().con("cedula", "12345a78"), "cedula", "La cédula debe tener solo números");
-		esperaRechazo(validos().con("cedula", "V12345678"), "cedula", "La cédula debe tener solo números");
+		esperaRechazo(validos().con("cedula", ""), "cedula", "obligatorio");
+		esperaRechazo(validos().con("cedula", "   "), "cedula", "obligatorio");
+		esperaRechazo(validos().con("cedula", "12345a78"), "cedula", "formato");
+		esperaRechazo(validos().con("cedula", "V12345678"), "cedula", "formato");
 	}
 
 	@Test
 	void laClaveDebeTenerAlMenos8Caracteres() throws Exception {
-		esperaRechazo(validos().con("clave", "corta12"), "clave", "al menos 8 caracteres");
+		esperaRechazo(validos().con("clave", "corta12"), "clave", "longitud_minima");
 		assertThat(registrar(validos().con("clave", "exacto88").json()).getResponse().getStatus()).isEqualTo(201);
 	}
 
 	@Test
 	void unaClaveMasLargaQueLoQueBcryptAceptaSeRechazaEnVezDeTruncarse() throws Exception {
-		esperaRechazo(validos().con("clave", "x".repeat(73)), "clave", "como máximo 72 caracteres");
+		esperaRechazo(validos().con("clave", "x".repeat(73)), "clave", "longitud_maxima");
+	}
+
+	@Test
+	void unDuplicadoSigueConElTextoDelServidorEIndicaElCampo() throws Exception {
+		Datos d = validos();
+		assertThat(registrar(d.json()).getResponse().getStatus()).isEqualTo(201);
+		String porCorreo = registrar(d.con("cedula", d.cedula() + "1").json()).getResponse().getContentAsString();
+		assertThat(porCorreo).startsWith("{\"mensaje\":\"Ya existe una cuenta con ese correo\"")
+				.contains("\"correo\":\"Ya existe una cuenta con ese correo\"");
+		String porCedula = registrar(d.con("correo", "otro" + d.correo()).json()).getResponse().getContentAsString();
+		assertThat(porCedula).contains("\"cedula\":\"Ya existe una cuenta con esa cédula\"");
+	}
+
+	@Test
+	void sinLaPantallaLaRedDeSeguridadRespondeTodosLosCamposConError() throws Exception {
+		MvcResult r = registrar("{}");
+		assertThat(r.getResponse().getStatus()).isEqualTo(400);
+		String cuerpo = r.getResponse().getContentAsString();
+		assertThat(cuerpo).contains("Datos proporcionados incorrectos");
+		for (String campo : new String[] { "nombre", "cedula", "correo", "telefono", "clave" }) {
+			assertThat(cuerpo).contains("\"" + campo + "\":\"obligatorio\"");
+		}
 	}
 
 	@Test

@@ -5,6 +5,7 @@ import { ActivatedRoute, Router, convertToParamMap, provideRouter } from '@angul
 import { RouterTestingHarness } from '@angular/router/testing';
 import { miembroGuard } from '../../core/admin.guard';
 import { SesionService } from '../../core/sesion.service';
+import { ahoraEnZona } from '../../compartido/validacion/validators';
 import { Espacio } from '../../espacios/espacio.model';
 import { ConsultarMisReservasComponent } from '../consultar-mis-reservas/consultar-mis-reservas.component';
 import { Reserva } from '../reserva.model';
@@ -142,10 +143,25 @@ describe('CrearReservaComponent: validacion', () => {
     http.expectNone('/api/reservas/validar');
   });
 
-  it('muestra literal la capacidad excedida del servidor, con Aceptar y datos conservados', async () => {
+  it('la capacidad excedida se detecta en el cliente: modal con el literal, Aceptar enfoca asistentes y los datos se conservan', async () => {
     const { http, elegirSala, reservar, aceptarMensaje } = await abrir();
     await elegirSala();
     llenar({ asistentes: '9' });
+    await reservar();
+    expect(mensaje()?.textContent).toContain('La cantidad de asistentes supera la capacidad del espacio');
+    expect(mensaje()?.querySelector('button')?.textContent).toContain('Aceptar');
+    expect(panelConfirmar()).toBeNull();
+    http.expectNone('/api/reservas/validar');
+    await aceptarMensaje();
+    expect(campo('asistentes').value).toBe('9');
+    expect(document.activeElement).toBe(campo('asistentes'));
+    expect(document.querySelector('#asistentes-error')?.textContent).toContain('Supera la capacidad del espacio (máximo 6)');
+  });
+
+  it('si el servidor aun rechaza la capacidad (la lista cambio), muestra el literal con Aceptar', async () => {
+    const { http, elegirSala, reservar, aceptarMensaje } = await abrir();
+    await elegirSala();
+    llenar({ asistentes: '4' });
     await reservar();
     http.expectOne('/api/reservas/validar').flush(
       { mensaje: 'La cantidad de asistentes supera la capacidad del espacio', campos: { asistentes: 'La cantidad de asistentes supera la capacidad del espacio' } },
@@ -153,10 +169,8 @@ describe('CrearReservaComponent: validacion', () => {
     );
     await new Promise((r) => setTimeout(r));
     expect(mensaje()?.textContent).toContain('La cantidad de asistentes supera la capacidad del espacio');
-    expect(mensaje()?.querySelector('button')?.textContent).toContain('Aceptar');
-    expect(panelConfirmar()).toBeNull();
     await aceptarMensaje();
-    expect(campo('asistentes').value).toBe('9');
+    expect(campo('asistentes').value).toBe('4');
     expect(document.activeElement).toBe(campo('asistentes'));
   });
 
@@ -176,23 +190,31 @@ describe('CrearReservaComponent: validacion', () => {
     expect(campo('horaFin').value).toBe('15:30');
   });
 
-  it('la hora de inicio pasada de hoy la decide el servidor: el cliente envía y muestra su rechazo con el campo', async () => {
+  it('la hora de inicio pasada de hoy se rechaza en el cliente con el reloj de America/Caracas', async () => {
+    const { http, elegirSala, reservar } = await abrir();
+    await elegirSala();
+    if (ahoraEnZona().hora === '00:00') return; // el unico minuto del dia en que 00:00 aun no paso
+    llenar({ fecha: ahoraEnZona().fecha, horaInicio: '00:00', horaFin: '00:30' });
+    await reservar();
+    expect(mensaje()?.textContent).toContain('Datos proporcionados incorrectos');
+    expect(mensaje()?.textContent).toContain('Hora de inicio: La hora de inicio no puede ser anterior a la hora actual');
+    http.expectNone('/api/reservas/validar');
+  });
+
+  it('si el reloj del servidor la rechaza igual, muestra el codigo traducido y marca el campo', async () => {
     const { http, elegirSala, reservar, aceptarMensaje } = await abrir();
     await elegirSala();
-    const hoyTexto = new Date().toISOString().slice(0, 10);
-    llenar({ fecha: hoyTexto, horaInicio: '00:01', horaFin: '00:30' });
+    llenar();
     await reservar();
-    // El cliente no replica la regla: la peticion llega al servidor.
     http.expectOne('/api/reservas/validar').flush(
-      { mensaje: 'Datos proporcionados incorrectos', campos: { horaInicio: 'La hora de inicio no puede ser anterior a la hora actual' } },
+      { mensaje: 'Datos proporcionados incorrectos', campos: { horaInicio: 'hora_inicio_pasada' } },
       { status: 400, statusText: 'Bad Request' },
     );
     await new Promise((r) => setTimeout(r));
-    expect(mensaje()?.textContent).toContain('Datos proporcionados incorrectos');
     expect(mensaje()?.textContent).toContain('Hora de inicio: La hora de inicio no puede ser anterior a la hora actual');
     await aceptarMensaje();
-    expect(campo('horaInicio').value).toBe('00:01');
     expect(document.activeElement).toBe(campo('horaInicio'));
+    expect(document.querySelector('#horaInicio-error')?.textContent).toContain('no puede ser anterior');
   });
 
   it('muestra los errores de campo de un 400 genérico con la etiqueta del campo', async () => {
@@ -207,6 +229,111 @@ describe('CrearReservaComponent: validacion', () => {
     await new Promise((r) => setTimeout(r));
     expect(mensaje()?.textContent).toContain('Datos proporcionados incorrectos');
     expect(mensaje()?.textContent).toContain('Hora de fin: La hora no es válida');
+  });
+});
+
+describe('CrearReservaComponent: validacion interactiva', () => {
+  const error = (id: string) => document.querySelector(`#${id}-error`)?.textContent?.trim() ?? '';
+  const salir = async (fixture: { whenStable: () => Promise<unknown> }, id: string) => {
+    campo(id).dispatchEvent(new Event('blur'));
+    await fixture.whenStable();
+  };
+
+  it('un campo intacto no muestra error', async () => {
+    await abrir();
+    ['espacioId', 'fecha', 'horaInicio', 'horaFin', 'asistentes'].forEach((id) => expect(error(id), id).toBe(''));
+    expect(campo('fecha').getAttribute('aria-invalid')).toBeNull();
+  });
+
+  it('la fecha pasada se marca al salir del campo y se corrige tecla a tecla', async () => {
+    const { fixture } = await abrir();
+    escribir('fecha', '2000-01-01');
+    await salir(fixture, 'fecha');
+    expect(error('fecha')).toBe('La fecha no puede estar en el pasado');
+    expect(campo('fecha').getAttribute('aria-invalid')).toBe('true');
+    escribir('fecha', FUTURO);
+    await fixture.whenStable();
+    expect(error('fecha')).toBe('');
+  });
+
+  it('la hora de fin se reevalua cuando cambia la de inicio', async () => {
+    const { fixture } = await abrir();
+    escribir('horaInicio', '10:00');
+    escribir('horaFin', '11:00');
+    await salir(fixture, 'horaFin');
+    expect(error('horaFin')).toBe('');
+    escribir('horaInicio', '12:00');
+    await fixture.whenStable();
+    expect(error('horaFin')).toBe('La hora de fin debe ser posterior a la hora de inicio');
+    escribir('horaInicio', '09:00');
+    await fixture.whenStable();
+    expect(error('horaFin')).toBe('');
+  });
+
+  it('la hora de inicio de hoy se reevalua cuando cambia la fecha', async () => {
+    const { fixture } = await abrir();
+    if (ahoraEnZona().hora === '00:00') return;
+    escribir('horaInicio', '00:00');
+    escribir('fecha', FUTURO);
+    await salir(fixture, 'horaInicio');
+    expect(error('horaInicio')).toBe('');
+    escribir('fecha', ahoraEnZona().fecha);
+    await fixture.whenStable();
+    expect(error('horaInicio')).toContain('no puede ser anterior');
+    escribir('fecha', FUTURO);
+    await fixture.whenStable();
+    expect(error('horaInicio')).toBe('');
+  });
+
+  it('los asistentes se comparan con la capacidad y cambiar de espacio los reevalua', async () => {
+    const { fixture, el } = await abrir();
+    const tarjetas = () => el.querySelectorAll<HTMLElement>('sb-space-card');
+    tarjetas()[0].click();
+    await fixture.whenStable();
+    escribir('asistentes', '5');
+    await salir(fixture, 'asistentes');
+    expect(error('asistentes')).toBe('');
+    // Cubiculo A: capacidad 2
+    tarjetas()[1].click();
+    await fixture.whenStable();
+    expect(error('asistentes')).toBe('Supera la capacidad del espacio (máximo 2)');
+    tarjetas()[0].click();
+    await fixture.whenStable();
+    expect(error('asistentes')).toBe('');
+  });
+
+  it('los asistentes rechazan 0, negativos y decimales al salir del campo', async () => {
+    const { fixture } = await abrir();
+    for (const malo of ['0', '-1', '1.5']) {
+      escribir('asistentes', malo);
+      await salir(fixture, 'asistentes');
+      expect(error('asistentes'), malo).toContain('número entero mayor o igual a 1');
+    }
+  });
+
+  it('presionar sin datos marca todos los campos y Aceptar enfoca el primero invalido', async () => {
+    const { reservar, aceptarMensaje } = await abrir();
+    await reservar();
+    ['espacioId', 'fecha', 'horaInicio', 'horaFin', 'asistentes'].forEach((id) => expect(error(id), id).not.toBe(''));
+    await aceptarMensaje();
+    expect(document.activeElement?.tagName).toBe('SB-SPACE-CARD');
+  });
+
+  it('un rechazo de disponibilidad del servidor se marca en la fecha y se limpia al cambiar otro dato', async () => {
+    const { http, fixture, elegirSala, reservar, aceptarMensaje } = await abrir();
+    await elegirSala();
+    llenar();
+    await reservar();
+    http.expectOne('/api/reservas/validar').flush(
+      { mensaje: 'El espacio ya está reservado en esa fecha y horario', campos: { fecha: 'El espacio ya está reservado en esa fecha y horario' } },
+      { status: 409, statusText: 'Conflict' },
+    );
+    await new Promise((r) => setTimeout(r));
+    await aceptarMensaje();
+    expect(error('fecha')).toContain('ya está reservado');
+    escribir('horaFin', '16:00');
+    await fixture.whenStable();
+    expect(error('fecha')).toBe('');
   });
 });
 

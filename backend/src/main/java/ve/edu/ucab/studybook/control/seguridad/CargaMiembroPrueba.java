@@ -11,7 +11,7 @@ import ve.edu.ucab.studybook.control.cuenta.CuentaRepository;
 import ve.edu.ucab.studybook.model.Cuenta;
 import ve.edu.ucab.studybook.model.Rol;
 
-/** Miembro de prueba, solo en el perfil "dev" (mientras no exista la historia Registrarse). */
+/** Cuenta base de Miembro, en el perfil "dev" (el perfil normal de la aplicacion, ver application.properties). */
 @Component
 @Profile("dev")
 public class CargaMiembroPrueba implements ApplicationRunner {

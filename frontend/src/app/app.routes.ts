@@ -1,4 +1,3 @@
-import { isDevMode } from '@angular/core';
 import { Routes } from '@angular/router';
 import { adminGuard, miembroGuard } from './core/admin.guard';
 import { authGuard, sinSesionGuard } from './core/auth.guard';
@@ -49,9 +48,5 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./reservas/consultar-mis-reservas/consultar-mis-reservas.component').then((m) => m.ConsultarMisReservasComponent),
   },
-  // TODO: eliminar antes de entregar (galeria del sistema de diseno, solo desarrollo)
-  ...(isDevMode()
-    ? [{ path: 'diseno', loadComponent: () => import('./diseno/galeria.component').then((m) => m.GaleriaComponent) }]
-    : []),
   { path: '**', redirectTo: 'espacios' },
 ];

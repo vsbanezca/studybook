@@ -5,7 +5,7 @@ import java.util.regex.Pattern;
 /**
  * Regla de telefono compartida (Registrarse y, mas adelante, Modificar mi cuenta).
  * Se quitan espacios, guiones y parentesis y despues se exige: + opcional al inicio y de 10 a 15 digitos.
- * El frontend tiene la misma regla en frontend/src/app/compartido/telefono.ts.
+ * El frontend tiene la misma regla en frontend/src/app/compartido/validacion/ (FORMATO_TELEFONO y telefonoValidator).
  * SUPOSICION: el formato (10 a 15 digitos) se confirma con el equipo y la profesora.
  */
 public final class Telefono {

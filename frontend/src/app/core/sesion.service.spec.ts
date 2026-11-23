@@ -1,7 +1,8 @@
-import { HttpClient, provideHttpClient, withInterceptors } from '@angular/common/http';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
+import { ApiService } from './api.service';
 import { authInterceptor } from './auth.interceptor';
 import { SesionService } from './sesion.service';
 
@@ -31,10 +32,10 @@ describe('SesionService y authInterceptor', () => {
     expect(sesion.autenticado()).toBe(false);
   });
 
-  it('envia la cookie y, ante un 401, limpia la sesion y vuelve al login', () => {
+  it('ApiService envia la cookie y, ante un 401, el interceptor limpia la sesion y vuelve al login', () => {
     sesion.establecer({ nombre: 'Ana', correo: 'a@ucab.edu.ve', rol: 'MIEMBRO' });
     const ir = vi.spyOn(TestBed.inject(Router), 'navigateByUrl').mockResolvedValue(true);
-    TestBed.inject(HttpClient).get('/api/espacios').subscribe({ error: () => undefined });
+    TestBed.inject(ApiService).get('/espacios').subscribe({ error: () => undefined });
     const req = http.expectOne('/api/espacios');
     expect(req.request.withCredentials).toBe(true);
     req.flush({}, { status: 401, statusText: 'Unauthorized' });

@@ -15,53 +15,36 @@
 
         <div class="sb-campo">
           <label class="sb-etiqueta" for="nombre">Nombre</label>
-          <input id="nombre" class="sb-input" type="text" formControlName="nombre" autocomplete="name"
-            [attr.aria-invalid]="mostrarError('nombre') ? 'true' : null"
-            [attr.aria-describedby]="mostrarError('nombre') ? 'nombre-error' : null" />
-          @if (mostrarError('nombre')) {
-            <span class="sb-error-texto" id="nombre-error"><sb-icon nombre="circle-alert" />{{ errorDe('nombre') }}</span>
-          }
+          <input id="nombre" class="sb-input" type="text" autocomplete="name" formControlName="nombre" [sbCampo]="form.controls.nombre" />
+          <sb-field-error idMensaje="nombre-error" [control]="form.controls.nombre" [mensajes]="mensajes.nombre" />
         </div>
 
         <div class="sb-campo">
           <label class="sb-etiqueta" for="cedula">Cédula</label>
-          <input id="cedula" class="sb-input" type="text" inputmode="numeric" formControlName="cedula" autocomplete="off"
-            [attr.aria-invalid]="mostrarError('cedula') ? 'true' : null"
-            [attr.aria-describedby]="mostrarError('cedula') ? 'cedula-error' : null" />
-          @if (mostrarError('cedula')) {
-            <span class="sb-error-texto" id="cedula-error"><sb-icon nombre="circle-alert" />{{ errorDe('cedula') }}</span>
-          }
+          <input id="cedula" class="sb-input" type="text" inputmode="numeric" autocomplete="off" formControlName="cedula" [sbCampo]="form.controls.cedula" />
+          <sb-field-error idMensaje="cedula-error" [control]="form.controls.cedula" [mensajes]="mensajes.cedula" />
         </div>
 
         <div class="sb-campo">
           <label class="sb-etiqueta" for="correo">Correo institucional</label>
-          <input id="correo" class="sb-input" type="email" formControlName="correo" autocomplete="username"
-            [attr.aria-invalid]="mostrarError('correo') ? 'true' : null"
-            [attr.aria-describedby]="mostrarError('correo') ? 'correo-error' : null" />
-          @if (mostrarError('correo')) {
-            <span class="sb-error-texto" id="correo-error"><sb-icon nombre="circle-alert" />{{ errorDe('correo') }}</span>
-          }
+          <input id="correo" class="sb-input" type="email" autocomplete="username" formControlName="correo" [sbCampo]="form.controls.correo" />
+          <sb-field-error idMensaje="correo-error" [control]="form.controls.correo" [mensajes]="mensajes.correo" />
         </div>
 
         <div class="sb-campo">
           <label class="sb-etiqueta" for="telefono">Teléfono</label>
-          <input id="telefono" class="sb-input" type="tel" formControlName="telefono" autocomplete="tel"
-            [attr.aria-invalid]="mostrarError('telefono') ? 'true' : null"
-            [attr.aria-describedby]="mostrarError('telefono') ? 'telefono-error' : null" />
-          @if (mostrarError('telefono')) {
-            <span class="sb-error-texto" id="telefono-error"><sb-icon nombre="circle-alert" />{{ errorDe('telefono') }}</span>
-          }
+          <input id="telefono" class="sb-input" type="tel" autocomplete="tel" formControlName="telefono" [sbCampo]="form.controls.telefono" />
+          <sb-field-error idMensaje="telefono-error" [control]="form.controls.telefono" [mensajes]="mensajes.telefono" />
         </div>
 
         <div class="sb-campo">
           <label class="sb-etiqueta" for="clave">Contraseña</label>
-          <input id="clave" class="sb-input" type="password" formControlName="clave" autocomplete="new-password"
-            [attr.aria-invalid]="mostrarError('clave') ? 'true' : null"
-            [attr.aria-describedby]="mostrarError('clave') ? 'clave-error' : 'clave-ayuda'" />
-          @if (mostrarError('clave')) {
-            <span class="sb-error-texto" id="clave-error"><sb-icon nombre="circle-alert" />{{ errorDe('clave') }}</span>
-          }
-          <small class="sb-apoyo" id="clave-ayuda">Mínimo 8 caracteres.</small>
+          <input id="clave" class="sb-input" type="password" autocomplete="new-password" formControlName="clave" [sbCampo]="form.controls.clave" sbAyuda="clave-ayuda" />
+          <sb-field-error idMensaje="clave-error" [control]="form.controls.clave" [mensajes]="mensajes.clave" />
+          <small class="requisito sb-apoyo" id="clave-ayuda" [class.cumplido]="claveCumpleMinimo()">
+            <sb-icon [nombre]="claveCumpleMinimo() ? 'circle-check' : 'info'" />
+            Mínimo {{ minimoClave }} caracteres{{ claveCumpleMinimo() ? ': cumplido' : '' }}
+          </small>
         </div>
 
         <button type="submit" class="sb-btn sb-btn-primario sb-btn-bloque" [disabled]="enviando()"

@@ -1,10 +1,19 @@
 package ve.edu.ucab.studybook.control.espacio;
 
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import ve.edu.ucab.studybook.exceptions.CodigosValidacion;
+
+/** Red de seguridad: el formulario ya valida esto en el frontend; aqui responde 400 con el campo y un codigo. */
 public class EspacioRequest {
+    @NotBlank(message = CodigosValidacion.OBLIGATORIO)
     private String nombre;
+    @NotBlank(message = CodigosValidacion.OBLIGATORIO)
     private String ubicacion;
+    @NotBlank(message = CodigosValidacion.OBLIGATORIO)
     private String piso;
     private String descripcion;
+    @Min(value = 1, message = CodigosValidacion.MINIMO)
     private int capacidad;
 
     // Getters y Setters requeridos para mapear el JSON
