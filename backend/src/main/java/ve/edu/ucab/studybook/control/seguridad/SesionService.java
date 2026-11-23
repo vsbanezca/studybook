@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import ve.edu.ucab.studybook.control.cuenta.SesionResponse;
+import ve.edu.ucab.studybook.exceptions.CodigosValidacion;
 import ve.edu.ucab.studybook.exceptions.NoAutorizadoException;
 import ve.edu.ucab.studybook.model.Cuenta;
 
@@ -38,6 +39,6 @@ public class SesionService {
 		if (valor instanceof SesionResponse datos) {
 			return datos;
 		}
-		throw new NoAutorizadoException("Debes iniciar sesión");
+		throw new NoAutorizadoException(CodigosValidacion.SESION_REQUERIDA);
 	}
 }

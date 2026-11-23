@@ -85,14 +85,14 @@ class InicioSesionTests {
 		assertThat(claveMala.getResponse().getStatus()).isEqualTo(401);
 		assertThat(sinCuenta.getResponse().getContentAsString(java.nio.charset.StandardCharsets.UTF_8))
 				.isEqualTo(claveMala.getResponse().getContentAsString(java.nio.charset.StandardCharsets.UTF_8))
-				.contains("Correo o contraseña incorrectos");
+				.contains("credenciales_incorrectas");
 	}
 
 	@Test
 	void camposVaciosIndicanElCampo() throws Exception {
 		mvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON).content("{\"correo\":\"\",\"clave\":\"\"}"))
 				.andExpect(status().isBadRequest())
-				.andExpect(jsonPath("$.mensaje").value("Datos proporcionados incorrectos"))
+				.andExpect(jsonPath("$.mensaje").value("datos_invalidos"))
 				.andExpect(jsonPath("$.campos.correo").exists())
 				.andExpect(jsonPath("$.campos.clave").exists());
 	}

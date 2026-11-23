@@ -173,14 +173,14 @@ class EquipamientoTests {
 	void unEspacioInexistenteAlCrearDa400ConUnMensajeClaro() throws Exception {
 		MvcResult r = crear(admin, cuerpo("A", "Audiovisual", "d", "Disponible", 987654L));
 		assertThat(r.getResponse().getStatus()).isEqualTo(400);
-		assertThat(r.getResponse().getContentAsString()).contains("espacioId").contains("El espacio indicado no existe");
+		assertThat(r.getResponse().getContentAsString()).contains("espacioId").contains("espacio_no_existe");
 	}
 
 	@Test
 	void unEspacioIdQueNoEsNumeroAlConsultarDa400ConElCampoYElCodigoFormato() throws Exception {
 		MvcResult r = mvc.perform(get("/api/equipamientos").param("espacioId", "abc").session(admin)).andReturn();
 		assertThat(r.getResponse().getStatus()).isEqualTo(400);
-		assertThat(r.getResponse().getContentAsString()).contains("Datos proporcionados incorrectos")
+		assertThat(r.getResponse().getContentAsString()).contains("datos_invalidos")
 				.contains("\"espacioId\":\"formato\"");
 	}
 
@@ -188,7 +188,7 @@ class EquipamientoTests {
 	void unEspacioInexistenteAlConsultarDa404ConUnMensajeClaro() throws Exception {
 		MvcResult r = listar(admin, 987654L);
 		assertThat(r.getResponse().getStatus()).isEqualTo(404);
-		assertThat(r.getResponse().getContentAsString()).contains("El espacio indicado no existe");
+		assertThat(r.getResponse().getContentAsString()).contains("espacio_no_existe");
 	}
 
 	@Test
@@ -196,7 +196,7 @@ class EquipamientoTests {
 		assertThat(crear(admin, valido("Proyector")).getResponse().getStatus()).isEqualTo(200);
 		MvcResult r = crear(admin, valido("  PROYECTOR "));
 		assertThat(r.getResponse().getStatus()).isEqualTo(400);
-		assertThat(r.getResponse().getContentAsString()).contains("Ya existe ese equipamiento en este espacio");
+		assertThat(r.getResponse().getContentAsString()).contains("equipamiento_repetido");
 	}
 
 	@Test
@@ -204,7 +204,7 @@ class EquipamientoTests {
 		assertThat(crear(admin, valido("Pantalla grande")).getResponse().getStatus()).isEqualTo(200);
 		MvcResult r = crear(admin, valido(" PANTALLA    grande "));
 		assertThat(r.getResponse().getStatus()).isEqualTo(400);
-		assertThat(r.getResponse().getContentAsString()).contains("Ya existe ese equipamiento en este espacio");
+		assertThat(r.getResponse().getContentAsString()).contains("equipamiento_repetido");
 		assertThat(equipamientos.listarPorEspacio(espacioId)).hasSize(1);
 	}
 

@@ -67,8 +67,8 @@ class ReservaTests {
 	}
 
 	private static final String CLAVE = "Miembro-test-123";
-	private static final String CAPACIDAD = "La cantidad de asistentes supera la capacidad del espacio";
-	private static final String NO_DISPONIBLE = "El espacio ya está reservado en esa fecha y horario";
+	private static final String CAPACIDAD = "capacidad_excedida";
+	private static final String NO_DISPONIBLE = "no_disponible";
 
 	@Autowired
 	WebApplicationContext contexto;
@@ -151,7 +151,7 @@ class ReservaTests {
 		for (MvcResult r : List.of(validar(ana, cuerpo), crear(ana, cuerpo))) {
 			assertThat(r.getResponse().getStatus()).as(campo).isEqualTo(400);
 			String texto = r.getResponse().getContentAsString();
-			assertThat(texto).as(campo).contains("Datos proporcionados incorrectos").contains("\"" + campo + "\"").contains(mensaje);
+			assertThat(texto).as(campo).contains("datos_invalidos").contains("\"" + campo + "\"").contains(mensaje);
 		}
 	}
 
@@ -234,7 +234,7 @@ class ReservaTests {
 
 	@Test
 	void unEspacioInexistenteSeRechazaIndicandoElCampo() throws Exception {
-		esperaRechazoDeCampo(json(987654L, fecha, "14:00", "15:00", 2), "espacioId", "El espacio indicado no existe");
+		esperaRechazoDeCampo(json(987654L, fecha, "14:00", "15:00", 2), "espacioId", "espacio_no_existe");
 	}
 
 	@Test

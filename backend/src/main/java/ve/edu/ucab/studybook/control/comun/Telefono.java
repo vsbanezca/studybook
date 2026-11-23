@@ -10,8 +10,6 @@ import java.util.regex.Pattern;
  */
 public final class Telefono {
 
-	public static final String MENSAJE_FORMATO = "El teléfono debe tener de 10 a 15 dígitos, con + opcional al inicio";
-
 	private static final Pattern SEPARADORES = Pattern.compile("[\\s\\-()]");
 	private static final Pattern FORMATO = Pattern.compile("^\\+?\\d{10,15}$");
 

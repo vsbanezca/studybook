@@ -7,7 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import ve.edu.ucab.studybook.control.cuenta.SesionResponse;
 import ve.edu.ucab.studybook.exceptions.AccesoProhibidoException;
-import ve.edu.ucab.studybook.exceptions.GlobalExceptionHandler;
+import ve.edu.ucab.studybook.exceptions.CodigosValidacion;
 import ve.edu.ucab.studybook.model.Rol;
 
 /**
@@ -35,10 +35,10 @@ public class AutorizacionInterceptor implements HandlerInterceptor {
 		}
 		SesionResponse sesion = sesiones.actual(request);
 		if (exigeAdministrador(ruta, request.getMethod()) && sesion.rol() != Rol.ADMINISTRADOR) {
-			throw new AccesoProhibidoException(GlobalExceptionHandler.SIN_PERMISO);
+			throw new AccesoProhibidoException(CodigosValidacion.SIN_PERMISO);
 		}
 		if (esRuta(ruta, "/api/reservas") && sesion.rol() != Rol.MIEMBRO) {
-			throw new AccesoProhibidoException(GlobalExceptionHandler.SIN_PERMISO);
+			throw new AccesoProhibidoException(CodigosValidacion.SIN_PERMISO);
 		}
 		return true;
 	}

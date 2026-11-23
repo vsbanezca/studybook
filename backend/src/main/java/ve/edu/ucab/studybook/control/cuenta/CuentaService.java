@@ -18,12 +18,6 @@ import ve.edu.ucab.studybook.model.Rol;
 @Service
 public class CuentaService {
 
-	public static final String CREDENCIALES_INCORRECTAS = "Correo o contraseña incorrectos";
-
-	// Mensajes de duplicado: dependen de lo guardado, por eso los decide el servidor (el frontend los muestra tal cual).
-	static final String CORREO_REGISTRADO = "Ya existe una cuenta con ese correo";
-	static final String CEDULA_REGISTRADA = "Ya existe una cuenta con esa cédula";
-
 	/** BCrypt solo usa los primeros 72 bytes: se rechaza una clave mas larga en vez de truncarla en silencio (seguridad). */
 	private static final int BYTES_MAXIMOS_CLAVE = 72;
 
@@ -46,7 +40,7 @@ public class CuentaService {
 		Cuenta cuenta = repositorio.buscarPorCorreo(correo.trim()).orElse(null);
 		boolean coincide = encoder.matches(clave, cuenta != null ? cuenta.clave() : hashRelleno);
 		if (cuenta == null || !coincide) {
-			throw new NoAutorizadoException(CREDENCIALES_INCORRECTAS);
+			throw new NoAutorizadoException(CodigosValidacion.CREDENCIALES_INCORRECTAS);
 		}
 		return cuenta;
 	}
@@ -71,10 +65,10 @@ public class CuentaService {
 				Telefono.normalizar(peticion.telefono()), encoder.encode(clave), Rol.MIEMBRO);
 		CuentaRepository.ResultadoGuardado resultado = repositorio.guardarSiEsUnica(nueva);
 		if (resultado.duplicado() == CuentaRepository.Duplicado.CORREO) {
-			throw ValidacionException.literal(CORREO_REGISTRADO, "correo");
+			throw ValidacionException.deRegla(CodigosValidacion.CORREO_REGISTRADO, "correo");
 		}
 		if (resultado.duplicado() == CuentaRepository.Duplicado.CEDULA) {
-			throw ValidacionException.literal(CEDULA_REGISTRADA, "cedula");
+			throw ValidacionException.deRegla(CodigosValidacion.CEDULA_REGISTRADA, "cedula");
 		}
 		return resultado.cuenta();
 	}
