@@ -1,22 +1,19 @@
-import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
+import { ApiService } from '../core/api.service';
 import { Espacio } from './espacio.model';
-import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class EspacioService {
-  private apiUrl = `${environment.apiUrl}/espacios`;
-
-  constructor(private http: HttpClient) { }
+  private readonly api = inject(ApiService);
 
   consultarEspacios(): Observable<Espacio[]> {
-    return this.http.get<Espacio[]>(this.apiUrl);
+    return this.api.get<Espacio[]>('/espacios');
   }
 
   crearEspacio(espacio: Espacio): Observable<Espacio> {
-    return this.http.post<Espacio>(this.apiUrl, espacio);
+    return this.api.post<Espacio>('/espacios', espacio);
   }
 }
