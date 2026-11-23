@@ -104,7 +104,7 @@ class ReservaHoraTests {
 		for (String ruta : new String[] { "/api/reservas/validar", "/api/reservas" }) {
 			MvcResult r = enviar(ruta, cuerpo(fecha, inicio, fin));
 			assertThat(r.getResponse().getStatus()).as("%s %s", ruta, inicio).isEqualTo(400);
-			assertThat(r.getResponse().getContentAsString()).startsWith("{\"mensaje\":\"Datos proporcionados incorrectos\"")
+			assertThat(r.getResponse().getContentAsString()).startsWith("{\"mensaje\":\"datos_invalidos\"")
 					.contains("\"horaInicio\":\"hora_inicio_pasada\"");
 		}
 		assertThat(reservas.listar().stream().filter(x -> x.espacioId().equals(espacioId))).isEmpty();

@@ -142,7 +142,7 @@ class RegistroTests {
 		// Mismo correo con otra cedula y con mayusculas: sigue siendo el mismo correo.
 		MvcResult r = registrar(d.con("cedula", "99999001").con("correo", d.correo().toUpperCase()).json());
 		assertThat(r.getResponse().getStatus()).isEqualTo(400);
-		assertThat(r.getResponse().getContentAsString()).contains("Ya existe una cuenta con ese correo");
+		assertThat(r.getResponse().getContentAsString()).contains("correo_registrado");
 	}
 
 	@Test
@@ -152,7 +152,7 @@ class RegistroTests {
 		MvcResult r = registrar(d.con("correo", "otro" + d.cedula() + "@est.ucab.edu.ve").json());
 		assertThat(r.getResponse().getStatus()).isEqualTo(400);
 		String cuerpo = r.getResponse().getContentAsString();
-		assertThat(cuerpo).contains("Ya existe una cuenta con esa cédula").doesNotContain("con ese correo");
+		assertThat(cuerpo).contains("cedula_registrada").doesNotContain("correo_registrado");
 	}
 
 	@Test
@@ -271,10 +271,10 @@ class RegistroTests {
 		Datos d = validos();
 		assertThat(registrar(d.json()).getResponse().getStatus()).isEqualTo(201);
 		String porCorreo = registrar(d.con("cedula", d.cedula() + "1").json()).getResponse().getContentAsString();
-		assertThat(porCorreo).startsWith("{\"mensaje\":\"Ya existe una cuenta con ese correo\"")
-				.contains("\"correo\":\"Ya existe una cuenta con ese correo\"");
+		assertThat(porCorreo).startsWith("{\"mensaje\":\"correo_registrado\"")
+				.contains("\"correo\":\"correo_registrado\"");
 		String porCedula = registrar(d.con("correo", "otro" + d.correo()).json()).getResponse().getContentAsString();
-		assertThat(porCedula).contains("\"cedula\":\"Ya existe una cuenta con esa cédula\"");
+		assertThat(porCedula).contains("\"cedula\":\"cedula_registrada\"");
 	}
 
 	@Test
@@ -282,7 +282,7 @@ class RegistroTests {
 		MvcResult r = registrar("{}");
 		assertThat(r.getResponse().getStatus()).isEqualTo(400);
 		String cuerpo = r.getResponse().getContentAsString();
-		assertThat(cuerpo).contains("Datos proporcionados incorrectos");
+		assertThat(cuerpo).contains("datos_invalidos");
 		for (String campo : new String[] { "nombre", "cedula", "correo", "telefono", "clave" }) {
 			assertThat(cuerpo).contains("\"" + campo + "\":\"obligatorio\"");
 		}
@@ -292,7 +292,7 @@ class RegistroTests {
 	void unCuerpoIlegibleDa400SinDetallesInternos() throws Exception {
 		MvcResult r = registrar("esto no es json");
 		assertThat(r.getResponse().getStatus()).isEqualTo(400);
-		assertThat(r.getResponse().getContentAsString()).contains("Datos proporcionados incorrectos");
+		assertThat(r.getResponse().getContentAsString()).contains("datos_invalidos");
 	}
 
 	@Test

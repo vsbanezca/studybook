@@ -88,7 +88,7 @@ class ValidacionEspaciosTests {
 				json("  SALA DUP ", " biblioteca DUP  ", "1", 4) }) {
 			MockHttpServletResponse r = crear(cuerpo);
 			assertThat(r.getStatus()).isEqualTo(400);
-			assertThat(r.getContentAsString()).contains("Ya existe un espacio con ese nombre en esa ubicación");
+			assertThat(r.getContentAsString()).contains("espacio_repetido");
 		}
 	}
 

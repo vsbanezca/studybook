@@ -9,6 +9,7 @@ import java.util.stream.Stream;
 import org.springframework.stereotype.Service;
 
 import ve.edu.ucab.studybook.control.espacio.EspacioRepository;
+import ve.edu.ucab.studybook.exceptions.CodigosValidacion;
 import ve.edu.ucab.studybook.exceptions.ConflictoException;
 import ve.edu.ucab.studybook.exceptions.ValidacionException;
 import ve.edu.ucab.studybook.model.EstadoReserva;
@@ -17,11 +18,6 @@ import ve.edu.ucab.studybook.model.Reserva;
 
 @Service
 public class ReservaService {
-
-	// Textos LITERALES de la especificacion (frontend/src/app/compartido/messages.ts)
-	static final String CAPACIDAD_EXCEDIDA = "La cantidad de asistentes supera la capacidad del espacio";
-	static final String NO_DISPONIBLE = "El espacio ya está reservado en esa fecha y horario";
-	static final String ESPACIO_NO_EXISTE = "El espacio indicado no existe";
 
 	private final ReservaRepository reservas;
 	private final EspacioRepository espacios;
@@ -48,7 +44,7 @@ public class ReservaService {
 		Reserva nueva = new Reserva(null, null, miembro, d.espacioId(), d.fecha(), d.horaInicio(), d.horaFin(),
 				d.asistentes(), EstadoReserva.ACTIVA);
 		Reserva guardada = reservas.guardarSiDisponible(nueva)
-				.orElseThrow(() -> new ConflictoException(NO_DISPONIBLE, "fecha"));
+				.orElseThrow(() -> new ConflictoException(CodigosValidacion.NO_DISPONIBLE, "fecha"));
 		return ReservaResponse.de(guardada, espacio);
 	}
 
@@ -69,16 +65,16 @@ public class ReservaService {
 		ReservaValidador.Datos d = validador.validar(peticion, LocalDateTime.now(reloj));
 		Espacio espacio = buscarEspacio(d.espacioId());
 		if (d.asistentes() > espacio.capacidad()) {
-			throw ValidacionException.literal(CAPACIDAD_EXCEDIDA, "asistentes");
+			throw ValidacionException.deRegla(CodigosValidacion.CAPACIDAD_EXCEDIDA, "asistentes");
 		}
 		if (reservas.hayChoque(d.espacioId(), d.fecha(), d.horaInicio(), d.horaFin())) {
-			throw new ConflictoException(NO_DISPONIBLE, "fecha");
+			throw new ConflictoException(CodigosValidacion.NO_DISPONIBLE, "fecha");
 		}
 		return d;
 	}
 
 	private Espacio buscarEspacio(Long id) {
 		return espacios.listar().stream().filter(e -> e.id().equals(id)).findFirst()
-				.orElseThrow(() -> new ValidacionException(ESPACIO_NO_EXISTE, "espacioId"));
+				.orElseThrow(() -> new ValidacionException(CodigosValidacion.ESPACIO_NO_EXISTE, "espacioId"));
 	}
 }

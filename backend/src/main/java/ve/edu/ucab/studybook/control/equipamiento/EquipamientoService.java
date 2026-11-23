@@ -6,17 +6,13 @@ import java.util.Optional;
 import org.springframework.stereotype.Service;
 
 import ve.edu.ucab.studybook.control.espacio.EspacioRepository;
+import ve.edu.ucab.studybook.exceptions.CodigosValidacion;
 import ve.edu.ucab.studybook.exceptions.NoEncontradoException;
 import ve.edu.ucab.studybook.exceptions.ValidacionException;
 import ve.edu.ucab.studybook.model.Equipamiento;
 
 @Service
 public class EquipamientoService {
-
-    // Dependen de lo guardado: los decide el servidor y el frontend los muestra tal cual.
-    static final String ESPACIO_NO_EXISTE = "El espacio indicado no existe";
-    // SUPOSICION: texto propuesto para el duplicado, a confirmar con el equipo.
-    static final String EQUIPAMIENTO_REPETIDO = "Ya existe ese equipamiento en este espacio";
 
     private final EquipamientoRepository equipamientoRepository;
     private final EspacioRepository espacioRepository;
@@ -31,7 +27,7 @@ public class EquipamientoService {
 
     public List<Equipamiento> consultarPorEspacio(Long espacioId) {
         if (!existeEspacio(espacioId)) {
-            throw new NoEncontradoException(ESPACIO_NO_EXISTE);
+            throw new NoEncontradoException(CodigosValidacion.ESPACIO_NO_EXISTE);
         }
         return equipamientoRepository.listarPorEspacio(espacioId);
     }
@@ -39,14 +35,14 @@ public class EquipamientoService {
     /** El formato ya lo valido Bean Validation en EquipamientoRequest; aqui queda lo que necesita lo guardado. */
     public Equipamiento crearEquipamiento(EquipamientoRequest request) {
         if (!existeEspacio(request.getEspacioId())) {
-            throw new ValidacionException(ESPACIO_NO_EXISTE, "espacioId");
+            throw new ValidacionException(CodigosValidacion.ESPACIO_NO_EXISTE, "espacioId");
         }
         Equipamiento nuevo = new Equipamiento(null, request.getNombre().trim(), request.getCategoria().trim(),
                 request.getDescripcion().trim(), request.getEstado().trim(), request.getCantidad(),
                 request.getEspacioId());
         // Guardar controlando duplicados de forma segura (igual que en EspacioRepository)
         Optional<Equipamiento> resultado = equipamientoRepository.guardarSiNoExiste(nuevo);
-        return resultado.orElseThrow(() -> ValidacionException.literal(EQUIPAMIENTO_REPETIDO, "nombre"));
+        return resultado.orElseThrow(() -> ValidacionException.deRegla(CodigosValidacion.EQUIPAMIENTO_REPETIDO, "nombre"));
     }
 
     private boolean existeEspacio(Long espacioId) {

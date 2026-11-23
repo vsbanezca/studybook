@@ -11,7 +11,7 @@ import { DatoConfirmacion, SbConfirmDialogComponent } from '../../compartido/ui/
 import { SbCampoDirective, SbFieldErrorComponent } from '../../compartido/ui/sb-field-error/sb-field-error.component';
 import { SbMessageComponent } from '../../compartido/ui/sb-message/sb-message.component';
 import { SbSpaceCardComponent } from '../../compartido/ui/sb-space-card/sb-space-card.component';
-import { Mensajes, listarErrores, textoDeCodigo } from '../../compartido/validacion/validation-messages';
+import { Mensajes, listarErrores, textoDeCodigo, textoDeMensaje } from '../../compartido/validacion/validation-messages';
 import {
   ahoraEnZona, dentroDeCapacidad, enteroMinimo, fechaNoPasada, horaFinPosterior, horaInicioNoPasada, marcarErrorServidor,
   obligatorio, revalidarAlCambiar,
@@ -191,7 +191,7 @@ export class CrearReservaComponent implements OnInit {
     };
   }
 
-  /** Muestra el texto del servidor (literal de la especificacion) con Aceptar, marca el campo y deja los datos como estaban. */
+  /** Traduce los codigos del servidor a texto (validation-messages.ts), los muestra con Aceptar, marca el campo y deja los datos como estaban. */
   private alFallar(error: unknown): void {
     const http = error instanceof HttpErrorResponse ? error : null;
     let titulo: string = MSG.comunes.errorServidor;
@@ -200,7 +200,7 @@ export class CrearReservaComponent implements OnInit {
     if (http?.status === 403) {
       titulo = MSG.espacio.sinPermiso;
     } else if (http?.status === 400 || http?.status === 409) {
-      titulo = http.error?.mensaje ?? MSG.comunes.datosInvalidos;
+      titulo = textoDeMensaje(http.error?.mensaje);
       const campos = (http.error?.campos ?? {}) as Record<string, string>;
       const lista: string[] = [];
       for (const [nombre, valor] of Object.entries(campos)) {

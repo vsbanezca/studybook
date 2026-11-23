@@ -240,7 +240,7 @@ describe('RegistrarseComponent', () => {
     await enviar();
     botonesConfirmar()[1].click();
     http.expectOne('/api/auth/registro').flush(
-      { mensaje: 'Ya existe una cuenta con ese correo', campos: {} },
+      { mensaje: 'correo_registrado', campos: {} },
       { status: 400, statusText: 'Bad Request' },
     );
     await fixture.whenStable();
@@ -256,7 +256,7 @@ describe('RegistrarseComponent', () => {
     await enviar();
     botonesConfirmar()[1].click();
     http.expectOne('/api/auth/registro').flush(
-      { mensaje: 'Datos proporcionados incorrectos', campos: { correo: 'Usa tu correo institucional' } },
+      { mensaje: 'datos_invalidos', campos: { correo: 'dominio_no_institucional' } },
       { status: 400, statusText: 'Bad Request' },
     );
     await fixture.whenStable();
@@ -363,7 +363,7 @@ describe('RegistrarseComponent: validacion interactiva', () => {
     await fixture.whenStable();
     Array.from(document.querySelectorAll<HTMLButtonElement>('.sb-modal-panel button'))[1].click();
     http.expectOne('/api/auth/registro').flush(
-      { mensaje: 'Ya existe una cuenta con ese correo', campos: { correo: 'Ya existe una cuenta con ese correo' } },
+      { mensaje: 'correo_registrado', campos: { correo: 'correo_registrado' } },
       { status: 400, statusText: 'Bad Request' },
     );
     await fixture.whenStable();

@@ -221,7 +221,7 @@ describe('CrearEspacioComponent', () => {
       await enviar();
       botonModal('Sí').click();
       http.expectOne('/api/espacios').flush(
-        { mensaje: 'Ya existe un espacio con ese nombre en esa ubicación', campos: { nombre: 'Ya existe un espacio con ese nombre en esa ubicación' } },
+        { mensaje: 'espacio_repetido', campos: { nombre: 'espacio_repetido' } },
         { status: 400, statusText: 'Bad Request' },
       );
       fixture.detectChanges();
@@ -281,7 +281,7 @@ describe('CrearEspacioComponent', () => {
     llenar();
     await enviar();
     botonModal('Sí').click();
-    http.expectOne('/api/espacios').flush({ mensaje: 'Ya existe un espacio con ese nombre en esa ubicación', campos: {} }, { status: 400, statusText: 'Bad Request' });
+    http.expectOne('/api/espacios').flush({ mensaje: 'espacio_repetido', campos: {} }, { status: 400, statusText: 'Bad Request' });
     fixture.detectChanges();
     await fixture.whenStable();
     expect(modal('sb-dialogo-mensaje')?.textContent).toContain('Ya existe un espacio con ese nombre en esa ubicación');
@@ -298,7 +298,7 @@ describe('CrearEspacioComponent', () => {
     llenar();
     await enviar();
     botonModal('Sí').click();
-    http.expectOne('/api/espacios').flush({ mensaje: 'Datos proporcionados incorrectos', campos: { piso: 'Este campo es obligatorio.' } }, { status: 400, statusText: 'Bad Request' });
+    http.expectOne('/api/espacios').flush({ mensaje: 'datos_invalidos', campos: { piso: 'obligatorio' } }, { status: 400, statusText: 'Bad Request' });
     fixture.detectChanges();
     await fixture.whenStable();
     const texto = modal('sb-dialogo-mensaje')?.textContent ?? '';

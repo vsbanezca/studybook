@@ -91,4 +91,14 @@ class AutorizacionEspaciosTests {
 		assertThat(estado(get("/api/espacios"), null)).isEqualTo(401);
 		assertThat(estado(post("/api/espacios"), null)).isEqualTo(401);
 	}
+
+	/** El servidor responde codigos, no textos: los textos para el usuario los pone el frontend. */
+	@Test
+	void el403YEl401RespondenSoloElCodigo() throws Exception {
+		var prohibido = post("/api/espacios").session(sesion(MIEMBRO, CLAVE));
+		assertThat(mvc.perform(prohibido.contentType(MediaType.APPLICATION_JSON).content(ESPACIO)).andReturn().getResponse()
+				.getContentAsString()).isEqualTo("{\"mensaje\":\"sin_permiso\",\"campos\":{}}");
+		assertThat(mvc.perform(get("/api/espacios")).andReturn().getResponse().getContentAsString())
+				.isEqualTo("{\"mensaje\":\"sesion_requerida\",\"campos\":{}}");
+	}
 }
