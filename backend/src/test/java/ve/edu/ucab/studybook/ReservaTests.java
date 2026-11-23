@@ -6,8 +6,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -18,6 +20,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Primary;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -36,10 +42,29 @@ import ve.edu.ucab.studybook.model.Espacio;
 import ve.edu.ucab.studybook.model.Reserva;
 import ve.edu.ucab.studybook.model.Rol;
 
-/** Historia Crear reserva: reglas, capacidad, disponibilidad, atomicidad, roles y Consultar mis reservas (backend). */
+/**
+ * Historia Crear reserva: reglas, capacidad, disponibilidad, atomicidad, roles y Consultar mis reservas (backend).
+ * Usa un reloj fijo en la zona de la aplicacion (America/Caracas): las fechas de las pruebas salen del mismo reloj
+ * que usa el servidor, asi el resultado no depende de la hora ni de la zona horaria de la maquina (por ejemplo, el
+ * CI en UTC).
+ */
 @SpringBootTest
 @ActiveProfiles("test")
+@Import(ReservaTests.RelojFijo.class)
 class ReservaTests {
+
+	static final ZoneId ZONA = ZoneId.of("America/Caracas");
+	/** «Hoy» para el servidor durante estas pruebas: 15/06/2030 a las 10:00 en Caracas. */
+	static final LocalDate HOY = LocalDate.of(2030, 6, 15);
+
+	@TestConfiguration
+	static class RelojFijo {
+		@Bean
+		@Primary
+		Clock relojFijoReservas() {
+			return Clock.fixed(HOY.atTime(10, 0).atZone(ZONA).toInstant(), ZONA);
+		}
+	}
 
 	private static final String CLAVE = "Miembro-test-123";
 	private static final String CAPACIDAD = "La cantidad de asistentes supera la capacidad del espacio";
@@ -73,7 +98,7 @@ class ReservaTests {
 		admin = sesion("admin@test.dev", "Admin-test-123");
 		// Un espacio y un dia propios por prueba, para que no dependan del orden.
 		espacioId = espacios.guardar(new Espacio(null, "Sala " + System.nanoTime(), "Biblioteca", "1", "", 6)).id();
-		fecha = LocalDate.now().plusDays(30 + (System.nanoTime() % 300));
+		fecha = HOY.plusDays(30 + (System.nanoTime() % 300));
 	}
 
 	private void crearMiembro(String correo) {
@@ -179,7 +204,7 @@ class ReservaTests {
 
 	@Test
 	void laFechaNoPuedeEstarEnElPasado() throws Exception {
-		esperaRechazoDeCampo(json(espacioId, LocalDate.now().minusDays(1), "14:00", "15:00", 2), "fecha", "fecha_pasada");
+		esperaRechazoDeCampo(json(espacioId, HOY.minusDays(1), "14:00", "15:00", 2), "fecha", "fecha_pasada");
 	}
 
 	@Test
@@ -311,7 +336,7 @@ class ReservaTests {
 	@Test
 	void crearRevalidaAunqueNoSeHayaLlamadoAValidar() throws Exception {
 		assertThat(crear(ana, json(espacioId, fecha, "14:00", "15:00", 99)).getResponse().getStatus()).isEqualTo(400);
-		assertThat(crear(ana, json(espacioId, LocalDate.now().minusDays(2), "14:00", "15:00", 2)).getResponse().getStatus()).isEqualTo(400);
+		assertThat(crear(ana, json(espacioId, HOY.minusDays(2), "14:00", "15:00", 2)).getResponse().getStatus()).isEqualTo(400);
 		assertThat(reservas.listarPorMiembro("ana-reserva@test.dev").stream().filter(x -> x.espacioId().equals(espacioId))).isEmpty();
 	}
 
